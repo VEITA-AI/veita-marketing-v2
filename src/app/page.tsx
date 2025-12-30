@@ -1,7 +1,7 @@
 "use client";
 
 import { Backdrop } from "@/components/Backdrop";
-import { CardSlideOverSection } from "@/components/CardSlideOverSection";
+// import { CardSlideOverSection } from "@/components/CardSlideOverSection";
 import { CollaborationsSection } from "@/components/CollaborationsSection";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -29,7 +29,7 @@ export default function Home() {
       <HeroSection />
       <TextZoomSection />
 
-      <CardSlideOverSection />
+      {/* <CardSlideOverSection /> */}
 
       {/* Clients Section */}
       <CollaborationsSection />

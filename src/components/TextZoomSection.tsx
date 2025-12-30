@@ -3,6 +3,7 @@
 import React from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
+import TessellatedCanvas from "./TessellatedCanvas";
 
 const TEXT_ZOOM = 100;
 
@@ -76,18 +77,18 @@ export const TextZoomSection: React.FC = () => {
         y: zoomTarget4Rect?.top + zoomTarget4Rect?.height / 2,
       };
 
-      timeline.fromTo(
-        section1Ref.current,
-        {
-          y: "100vh",
-          autoAlpha: 0,
-        },
-        {
-          y: "0vh",
-          autoAlpha: 1,
-        },
-        "0"
-      );
+      // timeline.fromTo(
+      //   section1Ref.current,
+      //   {
+      //     y: "100vh",
+      //     autoAlpha: 0,
+      //   },
+      //   {
+      //     y: "0vh",
+      //     autoAlpha: 1,
+      //   },
+      //   "0"
+      // );
 
       timeline.fromTo(
         section1Ref.current,
@@ -99,7 +100,7 @@ export const TextZoomSection: React.FC = () => {
           backgroundPositionY: "100%",
           "--text-zoom-initial-opacity": "1",
         },
-        "+=0.10"
+        "+=0.25" // Delay text fade-in
       );
 
       timeline.fromTo(
@@ -246,59 +247,90 @@ export const TextZoomSection: React.FC = () => {
           style={{
             opacity: 0,
             width: "100%",
-            height: "100%",
-            background:
-              "linear-gradient(to top, hsl(var(--primary)) 50%, transparent 100%)",
-            backgroundSize: "100vw 200vh",
-            backgroundBlendMode: "screen",
-            // mixBlendMode: "multiply",
+            height: "100vh",
           }}
         >
+          <TessellatedCanvas
+            containerRef={containerRef}
+            config={{
+              scrollStart: "top+=300 bottom", // Start 300px before section enters viewport
+              scrollEnd: "bottom top",
+              startProgressMultiplier: 0.1, // Start very early for full animation
+              startProgressOffset: 0.0,
+              animationDuration: 0.075, // Full animation duration - completes before zoom
+              initialScale: 0, // Start at 0 so animation plays from beginning
+              triangleSize: 40, // Triangle size
+            }}
+          />
           <div
             style={{
               opacity: "var(--text-zoom-initial-opacity)",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              zIndex: 10,
+              gap: "10%",
             }}
           >
             <h2
-              className="text-4xl md:text-9xl uppercase font-bold text-white"
+              className="text-5xl  uppercase  text-white"
               style={{
                 WebkitFontSmoothing: "subpixel-antialiased",
                 transform: "translateZ(0)",
                 backfaceVisibility: "hidden",
               }}
             >
-              Transforming <br />
-              Ideas int
+              Introducing a new way to build:
+              <br />
               <span
+                className="font-bold"
                 style={{
-                  position: "relative",
-                  display: "inline-block",
-                  WebkitFontSmoothing: "subpixel-antialiased",
-                  transform: "translateZ(0)",
-                  backfaceVisibility: "hidden",
-                  textRendering: "optimizeLegibility",
+                  fontSize: "min(max(5vw, 11rem), 260px) !important",
                 }}
               >
+                KI
                 <span
-                  ref={zoomTarget1Ref}
                   style={{
-                    position: "absolute",
-                    display: "block",
-                    width: "70%",
-                    height: "55%",
-                    top: "20%",
-                    left: "15%",
-                    backgroundColor: "white",
-                    borderRadius: "20px",
+                    position: "relative",
+                    display: "inline-block",
+                    WebkitFontSmoothing: "subpixel-antialiased",
+                    transform: "translateZ(0)",
+                    backfaceVisibility: "hidden",
+                    textRendering: "optimizeLegibility",
                   }}
-                ></span>
-                o
-              </span>{" "}
+                >
+                  <span
+                    ref={zoomTarget1Ref}
+                    style={{
+                      position: "absolute",
+                      display: "block",
+                      width: "70%",
+                      height: "55%",
+                      top: "20%",
+                      left: "15%",
+                      backgroundColor: "white",
+                      borderRadius: "20px",
+                    }}
+                  ></span>
+                  o
+                </span>
+              </span>
+              {""}
               <br />
-              AI Powered <br />
-              Scalable Digital <br />
-              Solutions.
             </h2>
+            <div className="max-w-lg">
+              <div className="text-xl mt-4 text-white flex flex-row  gap-16">
+                <div className="flex flex-col gap-4">
+                  <span className="text-4xl">/ c · ɪː · ð / </span>
+                  <span className="text-white italic text-lg">
+                    Said with a soft ky sound at the start, a long ih vowel, and
+                    a light voiced th at the end.
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -312,7 +344,7 @@ export const TextZoomSection: React.FC = () => {
           <div className="container mx-auto flex items-end">
             <div className="flex flex-col md:flex-row gap-4 md:items-end">
               <h3 className="text-lg flex flex-col gap-8 ">
-                <div className="text-3xl md:text-5xl">01/</div>
+                <div className="text-3xl md:text-5xl">What&apos;s a Kio?</div>
                 <div
                   className="text-4xl md:text-8xl uppercase font-semibold text-primary"
                   style={{
@@ -322,10 +354,10 @@ export const TextZoomSection: React.FC = () => {
                     textRendering: "optimizeLegibility",
                   }}
                 >
-                  Our
-                  <br />
-                  Strategy is <br />
-                  ab
+                  Every
+                  <br /> Company
+                  <br /> in Veita
+                  <br /> is a Ki
                   <span
                     ref={zoomTarget2Ref}
                     style={{
@@ -334,15 +366,19 @@ export const TextZoomSection: React.FC = () => {
                   >
                     o
                   </span>
-                  ut <br />
-                  Defining the <br />
-                  Vision
+                  <br />
                 </div>
               </h3>
               <p className="md:ml-12 md:w-1/3 text-lg">
-                By understanding your goals, users, and market, we use AI-driven
-                insights and strategic planning to build a foundation aligned
-                with your objectives.
+                A Kio is a company created inside Veita.
+                <br />
+                <br />
+                Named after kið, the Icelandic word for a young goat — resilient
+                and built to climb.
+                <br />
+                <br />
+                Kios are shaped within Veita, then released as independent
+                companies.
               </p>
             </div>
           </div>
@@ -358,7 +394,7 @@ export const TextZoomSection: React.FC = () => {
           <div className="container mx-auto flex items-end">
             <div className="flex flex-col md:flex-row gap-4 md:items-end">
               <h3 className="text-lg flex flex-col gap-8 ">
-                <div className="text-3xl md:text-5xl">02/</div>
+                <div className="text-2xl md:text-4xl">KIO / 01 / EasyAudit</div>
                 <div
                   className="text-4xl md:text-8xl uppercase font-semibold text-primary"
                   style={{
@@ -376,19 +412,22 @@ export const TextZoomSection: React.FC = () => {
                   >
                     O
                   </span>
-                  ur
+                  ver
                   <br />
-                  Designers <br />
-                  Create <br />
-                  Intuitive, <br />
-                  AI-Enhanced <br />
-                  experiences
+                  The Fence.
+                  <br /> Running
+                  <br />
+                  Free.
                 </div>
               </h3>
               <p className="md:ml-12 md:w-1/3 text-lg">
-                With a user-centered approach, we transform ideas into
-                functional, engaging designs, ensuring every detail resonates
-                with users and industries.
+                EasyAudit is Veita’s first proof that the model works. <br />{" "}
+                <br />
+                Built quickly using an AI-native approach and without external
+                capital, EasyAudit has already left the corral and has jumped
+                the first 25 customer fence. <br /> <br /> EasyAudit will thrive
+                because builders sove a real problem and chose ownership over
+                salary. Plus the software is super slick.
               </p>
             </div>
           </div>
@@ -404,7 +443,7 @@ export const TextZoomSection: React.FC = () => {
           <div className="container mx-auto flex items-end">
             <div className="flex flex-col md:flex-row gap-4 md:items-end">
               <h3 className="text-lg flex flex-col gap-8 ">
-                <div className="text-3xl md:text-5xl">03/</div>
+                <div className="text-3xl md:text-5xl">KIO / 02 / Inflow.ai</div>
                 <div
                   className="text-4xl md:text-8xl uppercase font-semibold text-primary"
                   style={{
@@ -414,10 +453,10 @@ export const TextZoomSection: React.FC = () => {
                     textRendering: "optimizeLegibility",
                   }}
                 >
-                  Our
-                  <br />
-                  Engineers <br />
-                  Bring Th
+                  At the <br />
+                  Fence, <br />
+                  Preparing
+                  <br />t
                   <span
                     ref={zoomTarget4Ref}
                     style={{
@@ -425,15 +464,15 @@ export const TextZoomSection: React.FC = () => {
                     }}
                   >
                     o
-                  </span>
-                  se <br />
-                  Ideas to life
+                  </span>{" "}
+                  jump.
                 </div>
               </h3>
               <p className="md:ml-12 md:w-1/3 text-lg">
-                Leveraging automation and engineering expertise, we turn designs
-                into robust, scalable applications with seamless performance and
-                adaptability.
+                Inflow.ai is the next Kio approaching independence. It’s being
+                built inside Veita with momentum and intent, and is expected to
+                jump the fence soon. Details are intentionally light — the work
+                is not.
               </p>
             </div>
           </div>

@@ -114,8 +114,6 @@ export const HeroSection: React.FC = () => {
   const block1Ref = React.useRef<HTMLDivElement>(null);
   const block2Ref = React.useRef<HTMLDivElement>(null);
 
-  const contactRef = React.useRef<HTMLDivElement>(null);
-
   React.useEffect(() => {
     if (
       line1Ref.current === null ||
@@ -123,8 +121,7 @@ export const HeroSection: React.FC = () => {
       line3Ref.current === null ||
       line4Ref.current === null ||
       block1Ref.current === null ||
-      block2Ref.current === null ||
-      contactRef.current === null
+      block2Ref.current === null
     )
       return;
 
@@ -189,20 +186,6 @@ export const HeroSection: React.FC = () => {
         "--hero-line-4-blur": "0px",
       },
       "0.6"
-    );
-
-    timeline.fromTo(
-      contactRef.current,
-      {
-        autoAlpha: 0,
-        scale: 0,
-      },
-      {
-        scale: 1,
-        autoAlpha: 1,
-        duration: 0.5,
-      },
-      "1.2"
     );
     timeline.fromTo(
       block1Ref.current,
@@ -272,39 +255,21 @@ export const HeroSection: React.FC = () => {
         overflow: "hidden",
       }}
     >
-      <div ref={contentRef}>
+      <div
+        ref={contentRef}
+        style={{
+          position: "fixed",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "100%",
+        }}
+      >
         <div
           className="h-screen w-full flex flex-col md:items-center md:justify-center relative mx-auto"
           style={{
             maxWidth: "1580px",
           }}
         >
-          <div
-            ref={contactRef}
-            className="w-full h-screen items-center absolute hidden lg:flex opacity-0"
-          >
-            <div
-              className="p-2 pl-4 bg-white w-full flex justify-between items-center"
-              style={{
-                maxWidth: "400px",
-                borderRadius: "48px",
-                position: "absolute",
-                top: "15vh",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-            >
-              <span className="font-medium text-sm lg:text-md">
-                We are now accepting new clients ✨
-              </span>
-              <a
-                href="/contact"
-                className="button bg-primary text-white rounded-full py-2 px-4 text-sm lg:text-md"
-              >
-                Contact us
-              </a>
-            </div>
-          </div>
           <div className="w-full flex flex-col md:flex-row gap-16 pt-24 md:pt-0 relative mx-auto">
             <div
               className="ml-5"
@@ -315,7 +280,7 @@ export const HeroSection: React.FC = () => {
               <h1
                 className=" font-normal leading-tight"
                 style={{
-                  fontSize: "min(max(6vw, 3rem), 125px)",
+                  fontSize: "min(max(5vw, 3rem), 125px)",
                 }}
               >
                 <span
@@ -326,10 +291,9 @@ export const HeroSection: React.FC = () => {
                     filter: "blur(var(--hero-line-1-blur))",
                   }}
                 >
-                  Blending{" "}
-                  <HighlightText delay={HIGHLIGHT_OFFSET}>
-                    creativity
-                  </HighlightText>
+                  Building companies
+                  <br /> by putting{" "}
+                  <HighlightText delay={HIGHLIGHT_OFFSET}>value</HighlightText>
                 </span>
                 <br />
                 <span
@@ -340,9 +304,11 @@ export const HeroSection: React.FC = () => {
                     filter: "blur(var(--hero-line-2-blur))",
                   }}
                 >
-                  and{" "}
-                  <HighlightText delay={HIGHLIGHT_OFFSET + 1}>AI</HighlightText>{" "}
-                  through
+                  where it{" "}
+                  <HighlightText delay={HIGHLIGHT_OFFSET + 1}>
+                    belongs
+                  </HighlightText>{" "}
+                  -
                 </span>
                 <br />
                 <span
@@ -353,10 +319,11 @@ export const HeroSection: React.FC = () => {
                     filter: "blur(var(--hero-line-3-blur))",
                   }}
                 >
+                  with the{" "}
                   <HighlightText delay={HIGHLIGHT_OFFSET + 1.6}>
-                    design
+                    people
                   </HighlightText>{" "}
-                  and
+                  who
                 </span>
                 <br />
                 <span
@@ -368,8 +335,9 @@ export const HeroSection: React.FC = () => {
                   }}
                 >
                   <HighlightText delay={HIGHLIGHT_OFFSET + 2.4}>
-                    engineering.
-                  </HighlightText>
+                    create
+                  </HighlightText>{" "}
+                  it.
                 </span>
               </h1>
             </div>
@@ -382,50 +350,28 @@ export const HeroSection: React.FC = () => {
                 ref={block1Ref}
                 style={{ opacity: 0 }}
               >
-                Combining creativity and AI, we build innovative solutions
-                powered by top-tier engineers, designers, and product owners.
-                Our work spans industries, creating scalable, impactful products
-                that solve complex challenges.
+                Veita exists to help entrepreneurs build real companies without
+                needing permission from capital.
+                <br />
+                <br />
+                We believe the world is flipped upside down. Money outranks
+                talent, ownership outranks effort, and access outranks ability.
               </p>
               <div
                 className="flex flex-col gap-4"
                 ref={block2Ref}
                 style={{ opacity: 0 }}
               >
-                <div className="flex gap-14">
-                  <div className="flex flex-col ">
-                    <h3 className="text-5xl md:text-7xl font-semibold text-primary">
-                      <Counter target={4} />
-                    </h3>
-                    <p className="">Years</p>
-                  </div>
-                  <div className="flex flex-col ">
-                    <h3 className="text-5xl md:text-7xl font-semibold text-primary">
-                      <Counter target={8} />
-                    </h3>
-                    <p className="">Clients</p>
-                  </div>
-                  <div className="flex flex-col ">
-                    <h3 className="text-5xl md:text-7xl font-semibold text-primary">
-                      <Counter target={14} />
-                    </h3>
-                    <p className="">Projects</p>
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <h2 className="text-5xl md:text-7xl font-semibold text-primary">
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: "3.2ch",
-                      }}
-                    >
-                      $<Counter target={9.3} increment={0.1} />
-                    </span>
-                    + Million
-                  </h2>
-                  <p className="">In funding for our clients</p>
-                </div>
+                <p>
+                  We are an AI-native incubator built around a simple belief:
+                  <br />
+                  the best companies are built by people who are willing to work
+                  for equity — not just salary — when they’re given the right
+                  platform, structure, and support.
+                  <br />
+                  <br />
+                  We call this model Work for Equity (WFE).
+                </p>
               </div>
             </div>
           </div>
