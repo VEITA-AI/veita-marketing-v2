@@ -1,11 +1,12 @@
 "use client";
 
-import { Backdrop } from "@/components/Backdrop";
+// import { Backdrop } from "@/components/Backdrop";
 // import { CardSlideOverSection } from "@/components/CardSlideOverSection";
 import { CollaborationsSection } from "@/components/CollaborationsSection";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
+import { KioSection } from "@/components/KioSection";
 import { TextZoomSection } from "@/components/TextZoomSection";
 import React from "react";
 
@@ -21,18 +22,19 @@ export default function Home() {
         overflowX: "clip",
       }}
     >
-      <Backdrop />
+      {/* <Backdrop /> */}
       {/* Header */}
-      <Header />
+      {/* <Header /> */}
 
       {/* Hero Section */}
       <HeroSection />
-      <TextZoomSection />
+      <KioSection />
+      {/* <TextZoomSection /> */}
 
       {/* <CardSlideOverSection /> */}
 
       {/* Clients Section */}
-      <CollaborationsSection />
+      {/* <CollaborationsSection /> */}
 
       <Footer />
     </div>

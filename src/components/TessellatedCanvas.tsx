@@ -27,6 +27,8 @@ interface TessellatedCanvasConfig {
   animationDuration?: number;
   initialScale?: number;
   triangleSize?: number;
+  colorStart?: { r: number; g: number; b: number };
+  colorEnd?: { r: number; g: number; b: number };
 }
 
 interface TessellatedCanvasProps {
@@ -100,8 +102,16 @@ export default function TessellatedCanvas({
 
     const getGradientColor = (x: number, y: number): THREE.Color => {
       const progress = (x / width + y / height) / 2;
-      const startColor = { r: 12 / 255, g: 28 / 255, b: 90 / 255 };
-      const endColor = { r: 41 / 255, g: 98 / 255, b: 255 / 255 };
+      const startColor = finalConfig.colorStart || {
+        r: 12 / 255,
+        g: 28 / 255,
+        b: 90 / 255,
+      };
+      const endColor = finalConfig.colorEnd || {
+        r: 41 / 255,
+        g: 98 / 255,
+        b: 255 / 255,
+      };
 
       const r = startColor.r + (endColor.r - startColor.r) * progress;
       const g = startColor.g + (endColor.g - startColor.g) * progress;

@@ -1,243 +1,109 @@
 "use client";
 
 import React from "react";
+import { Tunnel } from "./Tunnel";
+import { LogoNoText } from "./LogoNoText";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
-
-const HighlightText = ({
-  children,
-  delay = 0,
-}: {
-  children: React.ReactNode | React.ReactNode[];
-  delay?: number;
-}) => {
-  const textHighlight = React.useRef<HTMLSpanElement>(null);
-
-  React.useEffect(() => {
-    if (!textHighlight.current) return;
-
-    const timeline = gsap.timeline();
-
-    timeline.fromTo(
-      textHighlight.current,
-      {
-        width: "0%",
-      },
-      {
-        width: "calc(100% + 32px)",
-        duration: 1,
-        delay,
-      }
-    );
-
-    timeline.play();
-  }, [textHighlight, delay]);
-
-  return (
-    <span
-      style={{
-        overflow: "visible",
-        display: "inline-block",
-        position: "relative",
-      }}
-    >
-      <span
-        ref={textHighlight}
-        style={{
-          position: "absolute",
-          top: "0.75vw",
-          left: "-0.5vw",
-          maxWidth: "calc(100% + 1vw)",
-          height: "min(max(6vw, 3rem), 125px)",
-          background: "#B0BDF5",
-        }}
-      />
-      <span
-        style={{
-          position: "relative",
-          display: "inline-block",
-          zIndex: 1,
-        }}
-      >
-        {children}
-      </span>
-    </span>
-  );
-};
-
-const Counter = ({
-  target = 0,
-  increment = 1,
-}: {
-  target?: number;
-  increment?: number;
-}) => {
-  const textRef = React.useRef<HTMLSpanElement>(null);
-
-  React.useEffect(() => {
-    if (textRef.current === null) return;
-
-    gsap.fromTo(
-      textRef.current,
-      {
-        textContent: 0,
-        ease: "power1.in",
-        snap: {
-          textContent: increment,
-        },
-      },
-      {
-        textContent: target,
-        snap: {
-          textContent: increment,
-        },
-        duration: 2,
-        ease: "power1.out",
-        delay: 2.5,
-      }
-    );
-  }, [increment, target]);
-
-  return <span ref={textRef}>0</span>;
-};
-
-const HIGHLIGHT_OFFSET = 2.25;
 
 export const HeroSection: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const line1Ref = React.useRef<HTMLSpanElement>(null);
-  const line2Ref = React.useRef<HTMLSpanElement>(null);
-  const line3Ref = React.useRef<HTMLSpanElement>(null);
-  const line4Ref = React.useRef<HTMLSpanElement>(null);
-
-  const block1Ref = React.useRef<HTMLDivElement>(null);
-  const block2Ref = React.useRef<HTMLDivElement>(null);
+  const caretRef = React.useRef<HTMLDivElement>(null);
+  const headline1Ref = React.useRef<HTMLHeadingElement>(null);
+  const headline2Ref = React.useRef<HTMLHeadingElement>(null);
+  const body1Ref = React.useRef<HTMLParagraphElement>(null);
+  const body2Ref = React.useRef<HTMLParagraphElement>(null);
 
   React.useEffect(() => {
     if (
-      line1Ref.current === null ||
-      line2Ref.current === null ||
-      line3Ref.current === null ||
-      line4Ref.current === null ||
-      block1Ref.current === null ||
-      block2Ref.current === null
+      !containerRef.current ||
+      !contentRef.current ||
+      !caretRef.current ||
+      !headline1Ref.current ||
+      !headline2Ref.current ||
+      !body1Ref.current ||
+      !body2Ref.current
     )
       return;
-
-    const timeline = gsap.timeline();
-
-    timeline.fromTo(
-      line1Ref.current,
-      {
-        autoAlpha: 0,
-        y: "10vh",
-        "--hero-line-1-blur": "50px",
-      },
-      {
-        y: 0,
-        autoAlpha: 1,
-        duration: 0.5,
-        "--hero-line-1-blur": "0px",
-      },
-      "0"
-    );
-    timeline.fromTo(
-      line2Ref.current,
-      {
-        autoAlpha: 0,
-        y: "10vh",
-        "--hero-line-2-blur": "50px",
-      },
-      {
-        y: 0,
-        autoAlpha: 1,
-        duration: 0.5,
-        "--hero-line-2-blur": "0px",
-      },
-      "0.2"
-    );
-    timeline.fromTo(
-      line3Ref.current,
-      {
-        autoAlpha: 0,
-        y: "10vh",
-        "--hero-line-3-blur": "50px",
-      },
-      {
-        y: 0,
-        autoAlpha: 1,
-        duration: 0.5,
-        "--hero-line-3-blur": "0px",
-      },
-      "0.4"
-    );
-    timeline.fromTo(
-      line4Ref.current,
-      {
-        autoAlpha: 0,
-        y: "10vh",
-        "--hero-line-4-blur": "50px",
-      },
-      {
-        y: 0,
-        autoAlpha: 1,
-        duration: 0.5,
-        "--hero-line-4-blur": "0px",
-      },
-      "0.6"
-    );
-    timeline.fromTo(
-      block1Ref.current,
-      {
-        autoAlpha: 0,
-        x: "50vw",
-      },
-      {
-        autoAlpha: 1,
-        x: "0vw",
-        duration: 0.5,
-      },
-      "1.2"
-    );
-    timeline.fromTo(
-      block2Ref.current,
-      {
-        autoAlpha: 0,
-        x: "50vw",
-      },
-      {
-        autoAlpha: 1,
-        x: "0vw",
-        duration: 0.5,
-      },
-      "1.5"
-    );
-  }, []);
-
-  React.useEffect(() => {
-    if (!containerRef.current || !contentRef.current) return;
     gsap.registerPlugin(ScrollTrigger);
 
-    const timeline = gsap.timeline();
+    // Set initial states with GPU acceleration hints
+    // Only set visibility, let timeline handle opacity
+    gsap.set([headline1Ref.current, body1Ref.current], {
+      opacity: 1,
+      visibility: "visible",
+      force3D: true,
+    });
+    gsap.set([headline2Ref.current, body2Ref.current], {
+      opacity: 0,
+      visibility: "hidden",
+      force3D: true,
+    });
 
+    const timeline = gsap.timeline({ defaults: { force3D: true } });
+
+    // Animate caret position (using transform for GPU acceleration)
     timeline.fromTo(
-      contentRef.current,
+      caretRef.current,
       {
-        delay: 1,
-        autoAlpha: 1,
+        y: 0,
+        force3D: true,
       },
       {
-        autoAlpha: 0,
-      }
+        y: 88,
+        force3D: true,
+      },
+      0
     );
 
+    // Fade out first set (headline1 and body1) - animate opacity smoothly, then hide visibility
+    timeline.to(
+      [headline1Ref.current, body1Ref.current],
+      {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.inOut",
+        force3D: true,
+      },
+      0
+    );
+
+    // Hide visibility after opacity animation completes (at the end)
+    timeline.set(
+      [headline1Ref.current, body1Ref.current],
+      {
+        visibility: "hidden",
+      },
+      0.5
+    );
+
+    // Show visibility first, then fade in second set (headline2 and body2)
+    timeline.set(
+      [headline2Ref.current, body2Ref.current],
+      {
+        visibility: "visible",
+      },
+      0
+    );
+    timeline.to(
+      [headline2Ref.current, body2Ref.current],
+      {
+        opacity: 1,
+        duration: 0.5,
+        ease: "power2.inOut",
+        force3D: true,
+      },
+      0
+    );
+
+    // Create ScrollTrigger for caret animation with optimized scrubbing
     const scrollTrigger = ScrollTrigger.create({
       trigger: containerRef.current,
       animation: timeline,
       start: "top top",
       end: "bottom bottom",
-      scrub: true,
+      scrub: 0.5, // Smoother scrubbing with less frequent updates
       toggleActions: "play none none reverse",
     });
 
@@ -262,115 +128,157 @@ export const HeroSection: React.FC = () => {
           left: "50%",
           transform: "translateX(-50%)",
           width: "100%",
+          height: "100vh",
         }}
       >
         <div
-          className="h-screen w-full flex flex-col md:items-center md:justify-center relative mx-auto"
+          className="h-screen w-full flex flex-col md:items-center md:justify-center relative mx-auto "
           style={{
-            maxWidth: "1580px",
+            maxWidth: "min(1440px, 100vw - 64px)",
+            marginTop: "32px",
+            maxHeight: "calc(100vh - 64px)",
+            borderRadius: "64px 0px",
+            overflow: "hidden",
           }}
         >
-          <div className="w-full flex flex-col md:flex-row gap-16 pt-24 md:pt-0 relative mx-auto">
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="backdrop-gradient" />
             <div
-              className="ml-5"
               style={{
-                width: "fit-content",
+                transformOrigin: "center bottom",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
               }}
             >
-              <h1
-                className=" font-normal leading-tight"
-                style={{
-                  fontSize: "min(max(5vw, 3rem), 125px)",
-                }}
-              >
-                <span
-                  ref={line1Ref}
-                  style={{
-                    opacity: 0,
-                    display: "inline-block",
-                    filter: "blur(var(--hero-line-1-blur))",
-                  }}
-                >
-                  Building companies
-                  <br /> by putting{" "}
-                  <HighlightText delay={HIGHLIGHT_OFFSET}>value</HighlightText>
-                </span>
-                <br />
-                <span
-                  ref={line2Ref}
-                  style={{
-                    opacity: 0,
-                    display: "inline-block",
-                    filter: "blur(var(--hero-line-2-blur))",
-                  }}
-                >
-                  where it{" "}
-                  <HighlightText delay={HIGHLIGHT_OFFSET + 1}>
-                    belongs
-                  </HighlightText>{" "}
-                  -
-                </span>
-                <br />
-                <span
-                  ref={line3Ref}
-                  style={{
-                    opacity: 0,
-                    display: "inline-block",
-                    filter: "blur(var(--hero-line-3-blur))",
-                  }}
-                >
-                  with the{" "}
-                  <HighlightText delay={HIGHLIGHT_OFFSET + 1.6}>
-                    people
-                  </HighlightText>{" "}
-                  who
-                </span>
-                <br />
-                <span
-                  ref={line4Ref}
-                  style={{
-                    opacity: 0,
-                    display: "inline-block",
-                    filter: "blur(var(--hero-line-4-blur))",
-                  }}
-                >
-                  <HighlightText delay={HIGHLIGHT_OFFSET + 2.4}>
-                    create
-                  </HighlightText>{" "}
-                  it.
-                </span>
-              </h1>
+              <Tunnel />
             </div>
-            <div
-              className="flex flex-col justify-between px-5 md:px-0 md:min-h-[100%] gap-8"
-              style={{ flex: 1 }}
-            >
-              <p
-                className="text-xl md:text-2xl pr-4"
-                ref={block1Ref}
-                style={{ opacity: 0 }}
-              >
-                Veita exists to help entrepreneurs build real companies without
-                needing permission from capital.
-                <br />
-                <br />
-                We believe the world is flipped upside down. Money outranks
-                talent, ownership outranks effort, and access outranks ability.
-              </p>
+          </div>
+          <div className="flex items-center w-full h-8 absolute top-24 left-0 px-24 justify-between">
+            <LogoNoText />
+            <div className="flex items-center gap-16 p-2 pl-16 rounded-full bg-white/10 backdrop-blur-sm">
+              <span className="text-white text-md font-medium">MAIN</span>
+              <span className="text-white text-md font-medium">KIO</span>
+              <span className="text-white text-md font-medium">WFE</span>
+              <span className="text-white text-md font-medium">PARTNERS</span>
+              <button className="bg-white text-black px-10 py-2 rounded-full text-md font-medium">
+                Contact
+              </button>
+            </div>
+          </div>
+          <div className="w-full flex flex-row items-center relative">
+            <div className="flex flex-col gap-6 mx-8 md:mx-24 relative">
               <div
-                className="flex flex-col gap-4"
-                ref={block2Ref}
-                style={{ opacity: 0 }}
-              >
-                <p>
-                  We are an AI-native incubator built around a simple belief:
+                ref={caretRef}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "8px",
+                  backgroundColor: "#D9D9D9FF",
+                  height: "64px",
+                  borderRadius: "4px",
+                  willChange: "transform",
+                  transform: "translateZ(0)",
+                }}
+              />
+              <div
+                style={{
+                  width: "8px",
+                  backgroundColor: "#D9D9D933",
+                  height: "64px",
+                  borderRadius: "4px",
+                }}
+              />
+              <div
+                style={{
+                  width: "8px",
+                  backgroundColor: "#D9D9D933",
+                  height: "64px",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+
+            <div className="flex items-start gap-4 md:gap-6 relative w-full h-full">
+              {/* Vertical caret/cursor */}
+
+              <div className="flex flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full h-full justify-center pr-16">
+                {/* Headline */}
+                <h1
+                  ref={headline1Ref}
+                  className="font-normal leading-tight text-white text-8xl"
+                  style={{
+                    willChange: "opacity",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  Value belongs with
                   <br />
-                  the best companies are built by people who are willing to work
-                  for equity — not just salary — when they’re given the right
-                  platform, structure, and support.
+                  the people who
+                  <br />
+                  create it.
+                </h1>
+
+                {/* Body text 1 */}
+                <p
+                  ref={body1Ref}
+                  className="text-white text-lg md:text-xl lg:text-xl leading-relaxed"
+                  style={{
+                    maxWidth: "800px",
+                    willChange: "opacity",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  Veita builds AI-native companies for builders who want
+                  ownership, not permission.
+                  <br />
+                  We provide the platform, structure, and leverage.
                   <br />
                   <br />
-                  We call this model Work for Equity (WFE).
+                  You build. You own.
+                  <br />
+                  This is Work for Equity.
+                </p>
+              </div>
+              <div className="flex flex-row gap-6 md:gap-8 absolute top-0 left-0 w-full pr-16 h-full items-center">
+                {/* Headline */}
+                <h1
+                  ref={headline2Ref}
+                  className="font-normal leading-tight text-white text-8xl w-1/2 mb-64"
+                  style={{
+                    willChange: "opacity",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  What is
+                  <br /> Veita?
+                </h1>
+
+                {/* Body text 2 */}
+                <p
+                  ref={body2Ref}
+                  className="text-white text-lg md:text-xl lg:text-xl leading-relaxed w-1/2 mt-64"
+                  style={{
+                    maxWidth: "800px",
+                    willChange: "opacity",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  Veita is a company studio for engineers, designers, operators,
+                  and founders who turn ideas into real companies by
+                  contributing skill, time, and judgment in exchange for
+                  ownership.
+                  <br />
+                  <br /> We build using AI-native systems, validate quickly, and
+                  introduce capital only when it accelerates value.
+                  <br />
+                  <br /> We provide the platform, patterns, tooling, and
+                  guidance. Teams do the work.
+                  <br />
+                  <br /> We takes a base 25% stake. You keep 75%.
                 </p>
               </div>
             </div>
