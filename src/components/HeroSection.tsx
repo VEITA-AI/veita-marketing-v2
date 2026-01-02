@@ -5,6 +5,7 @@ import { Tunnel } from "./Tunnel";
 import { LogoNoText } from "./LogoNoText";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
+import { TextSlideIn } from "./TextSlideIn";
 
 export const HeroSection: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -137,7 +138,7 @@ export const HeroSection: React.FC = () => {
             maxWidth: "min(1440px, 100vw - 64px)",
             marginTop: "32px",
             maxHeight: "calc(100vh - 64px)",
-            borderRadius: "64px 0px",
+            borderRadius: "64px",
             overflow: "hidden",
           }}
         >
@@ -215,11 +216,9 @@ export const HeroSection: React.FC = () => {
                     transform: "translateZ(0)",
                   }}
                 >
-                  Value belongs with
-                  <br />
-                  the people who
-                  <br />
-                  create it.
+                  <TextSlideIn text="Value belongs with" delay={0} />
+                  <TextSlideIn text="the people who" delay={0.4} />
+                  <TextSlideIn text="create it." delay={0.8} />
                 </h1>
 
                 {/* Body text 1 */}

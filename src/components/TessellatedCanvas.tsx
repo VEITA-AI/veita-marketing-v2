@@ -9,9 +9,7 @@ interface TriangleData {
   centerX: number;
   centerY: number;
   currentOffsetY: number;
-  targetOffsetY: number;
   scale: number;
-  velocity: number;
   normalizedY: number;
   color: THREE.Color;
   seed: number;
@@ -29,6 +27,8 @@ interface TessellatedCanvasConfig {
   triangleSize?: number;
   colorStart?: { r: number; g: number; b: number };
   colorEnd?: { r: number; g: number; b: number };
+  gradientOrigin?: { x: number; y: number }; // Normalized 0-1 coordinates
+  gradientScale?: number; // Scale factor for gradient size (default: 1.0, larger = smaller circle)
 }
 
 interface TessellatedCanvasProps {
@@ -44,6 +44,8 @@ const defaultConfig: TessellatedCanvasConfig = {
   animationDuration: 0.3,
   initialScale: 0,
   triangleSize: 40,
+  gradientOrigin: { x: 0.4, y: 1.0 }, // 40% from left, 100% from top (bottom)
+  gradientScale: 1.0, // Default scale
 };
 
 export default function TessellatedCanvas({
@@ -61,7 +63,6 @@ export default function TessellatedCanvas({
   const trianglesRef = useRef<TriangleData[]>([]);
   const upwardInstancedMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const downwardInstancedMeshRef = useRef<THREE.InstancedMesh | null>(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
   const animationFrameRef = useRef<number>();
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const matrixRef = useRef(new THREE.Matrix4());
@@ -99,26 +100,6 @@ export default function TessellatedCanvas({
     renderer.setClearColor(0x000000, 0); // Transparent background
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
-
-    const getGradientColor = (x: number, y: number): THREE.Color => {
-      const progress = (x / width + y / height) / 2;
-      const startColor = finalConfig.colorStart || {
-        r: 12 / 255,
-        g: 28 / 255,
-        b: 90 / 255,
-      };
-      const endColor = finalConfig.colorEnd || {
-        r: 41 / 255,
-        g: 98 / 255,
-        b: 255 / 255,
-      };
-
-      const r = startColor.r + (endColor.r - startColor.r) * progress;
-      const g = startColor.g + (endColor.g - startColor.g) * progress;
-      const b = startColor.b + (endColor.b - startColor.b) * progress;
-
-      return new THREE.Color(r, g, b);
-    };
 
     const createTriangleGeometry = (
       size: number,
@@ -194,17 +175,14 @@ export default function TessellatedCanvas({
             : y + rowHeight / 3 + rowHeight * 0.33; // Lower downward triangles slightly
 
           const normalizedY = (height - centerY) / height;
-          const color = getGradientColor(centerX, centerY);
 
           const triangleData: TriangleData = {
             centerX,
             centerY,
             currentOffsetY: 0,
-            targetOffsetY: 0,
             scale: finalConfig.initialScale!,
-            velocity: 0,
             normalizedY,
-            color,
+            color: new THREE.Color(), // Not used anymore, but keep for compatibility
             seed: Math.random() * 0.2,
             instanceId: isUpward
               ? upwardTriangles.length
@@ -224,57 +202,141 @@ export default function TessellatedCanvas({
       const upwardGeometry = createTriangleGeometry(size, true, rowHeight);
       const downwardGeometry = createTriangleGeometry(size, false, rowHeight);
 
-      // Create shader material for per-instance colors
+      // Get gradient colors for uniforms
+      const startColor = finalConfig.colorStart || {
+        r: 12 / 255,
+        g: 28 / 255,
+        b: 90 / 255,
+      };
+      const endColor = finalConfig.colorEnd || {
+        r: 41 / 255,
+        g: 98 / 255,
+        b: 255 / 255,
+      };
+      const gradientOrigin = finalConfig.gradientOrigin || { x: 0.4, y: 1.0 };
+      const gradientScale = finalConfig.gradientScale || 1.0;
+      const aspectRatio = width / height;
+
+      // Create shader material with gradient calculation in fragment shader
       const upwardMaterial = new THREE.ShaderMaterial({
         uniforms: {
-          mousePos: { value: new THREE.Vector2(0, 0) },
-          influenceRadius: { value: 200.0 },
-          maxDistortion: { value: 80.0 },
+          uResolution: { value: new THREE.Vector2(width, height) },
+          uAspectRatio: { value: aspectRatio },
+          uGradientOrigin: {
+            value: new THREE.Vector2(gradientOrigin.x, gradientOrigin.y),
+          },
+          uGradientScale: { value: gradientScale },
+          uColorStart: {
+            value: new THREE.Vector3(startColor.r, startColor.g, startColor.b),
+          },
+          uColorEnd: {
+            value: new THREE.Vector3(endColor.r, endColor.g, endColor.b),
+          },
+          uBurnIntensity: { value: 0.3 },
+          uNoiseScale: { value: 2.5 },
         },
         vertexShader: `
-          attribute vec3 instanceColor;
-          attribute vec3 instanceCenter;
           attribute float instanceOffsetY;
-          uniform vec2 mousePos;
-          uniform float influenceRadius;
-          uniform float maxDistortion;
-          varying vec3 vColor;
+          varying vec2 vWorldPos;
           
           void main() {
-            vColor = instanceColor;
-            
             // Get world position of vertex
             vec4 worldPos = instanceMatrix * vec4(position, 1.0);
             
-            // Use triangle center for displacement calculation
-            vec2 centerPos2D = instanceCenter.xy;
+            // Pass world position to fragment shader for gradient calculation
+            vWorldPos = worldPos.xy;
             
-            // Calculate distance from mouse to triangle center
-            float dist = length(mousePos - centerPos2D);
-            
-            // Apply vertical displacement based on distance from mouse (spherical raise)
-            float verticalDisplacement = 0.0;
-            if (dist < influenceRadius && dist > 0.0) {
-              float normalizedDist = dist / influenceRadius;
-              float influence = pow(1.0 - normalizedDist, 2.5);
-              
-              // Push triangles up vertically based on distance - closer = higher (raise)
-              verticalDisplacement = influence * maxDistortion;
-            }
-            
-            // Apply vertical raise from mouse interaction
-            worldPos.y += verticalDisplacement;
-            
-            // Apply existing offsetY (for scroll animation)
+            // Apply offsetY (for scroll animation)
             worldPos.y += instanceOffsetY;
             
             gl_Position = projectionMatrix * modelViewMatrix * worldPos;
           }
         `,
         fragmentShader: `
-          varying vec3 vColor;
+          uniform vec2 uResolution;
+          uniform float uAspectRatio;
+          uniform vec2 uGradientOrigin;
+          uniform float uGradientScale;
+          uniform vec3 uColorStart;
+          uniform vec3 uColorEnd;
+          uniform float uBurnIntensity;
+          uniform float uNoiseScale;
+          varying vec2 vWorldPos;
+          
+          // Simple hash function for dithering and noise
+          float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * vec3(443.8975, 397.2973, 491.1871));
+            p3 += dot(p3, p3.yzx + 19.19);
+            return fract((p3.x + p3.y) * p3.z);
+          }
+          
+          // Fractal noise for texture
+          float noise(vec2 p) {
+            return hash(p);
+          }
+          
+          // Fractal brownian motion for richer texture
+          float fbm(vec2 p) {
+            float value = 0.0;
+            float amplitude = 0.5;
+            float frequency = 1.0;
+            for (int i = 0; i < 4; i++) {
+              value += amplitude * noise(p * frequency);
+              frequency *= 2.0;
+              amplitude *= 0.5;
+            }
+            return value;
+          }
+          
           void main() {
-            gl_FragColor = vec4(vColor, 1.0);
+            // Convert world position to screen coordinates (pixels)
+            vec2 screenPos = vWorldPos + uResolution * 0.5;
+            
+            // Convert gradient origin from normalized (0-1) to screen coordinates
+            vec2 gradientCenterScreen = uGradientOrigin * uResolution;
+            
+            // Calculate distance in screen space - this naturally creates a circular gradient
+            vec2 delta = screenPos - gradientCenterScreen;
+            float distToCenter = length(delta);
+            
+            // Normalize distance by screen diagonal for consistent gradient scale
+            // Apply gradient scale to control circle size (larger scale = smaller circle)
+            float maxDist = length(uResolution);
+            float normalizedDist = (distToCenter / maxDist) * uGradientScale;
+            
+            // Map distance to gradient progress with very smooth interpolation
+            // Use smoothstep for gradual transitions instead of hard stops
+            float progressDist = smoothstep(0.1, 0.8, normalizedDist);
+            
+            // Apply additional smoothing for ultra-smooth gradient
+            // Double smoothstep for even smoother transitions
+            float smoothProgress = progressDist * progressDist * (3.0 - 2.0 * progressDist);
+            
+            // Interpolate between start and end colors
+            vec3 color = mix(uColorStart, uColorEnd, smoothProgress);
+            
+            // Generate procedural noise texture (sparser by using thresholding)
+            vec2 normalizedPos = screenPos / uResolution;
+            vec2 noiseCoord = normalizedPos * uNoiseScale;
+            float noiseValue = fbm(noiseCoord);
+            
+            // Make noise sparser by thresholding - only apply burn where noise is above a threshold
+            float noiseThreshold = 0.5;
+            float sparseNoise = smoothstep(noiseThreshold, noiseThreshold + 0.2, noiseValue);
+            
+            // Calculate luminance to reduce burn intensity on lighter tones
+            float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+            float burnModulator = 1.0 - smoothstep(0.3, 0.9, luminance); // Less burn on lighter colors
+            
+            // Apply burn blend mode: darken the color based on sparse noise
+            // Reduced intensity on lighter tones
+            color = color * (1.0 - sparseNoise * uBurnIntensity * burnModulator);
+            
+            // Add subtle dithering to reduce banding (1/255.0 for 8-bit dither)
+            float dither = (hash(gl_FragCoord.xy) - 0.5) / 255.0;
+            color += dither;
+            
+            gl_FragColor = vec4(color, 1.0);
           }
         `,
         side: THREE.DoubleSide,
@@ -283,54 +345,123 @@ export default function TessellatedCanvas({
 
       const downwardMaterial = new THREE.ShaderMaterial({
         uniforms: {
-          mousePos: { value: new THREE.Vector2(0, 0) },
-          influenceRadius: { value: 200.0 },
-          maxDistortion: { value: 80.0 },
+          uResolution: { value: new THREE.Vector2(width, height) },
+          uAspectRatio: { value: aspectRatio },
+          uGradientOrigin: {
+            value: new THREE.Vector2(gradientOrigin.x, gradientOrigin.y),
+          },
+          uGradientScale: { value: gradientScale },
+          uColorStart: {
+            value: new THREE.Vector3(startColor.r, startColor.g, startColor.b),
+          },
+          uColorEnd: {
+            value: new THREE.Vector3(endColor.r, endColor.g, endColor.b),
+          },
+          uBurnIntensity: { value: 0.3 },
+          uNoiseScale: { value: 2.5 },
         },
         vertexShader: `
-          attribute vec3 instanceColor;
-          attribute vec3 instanceCenter;
           attribute float instanceOffsetY;
-          uniform vec2 mousePos;
-          uniform float influenceRadius;
-          uniform float maxDistortion;
-          varying vec3 vColor;
+          varying vec2 vWorldPos;
           
           void main() {
-            vColor = instanceColor;
-            
             // Get world position of vertex
             vec4 worldPos = instanceMatrix * vec4(position, 1.0);
             
-            // Use triangle center for displacement calculation
-            vec2 centerPos2D = instanceCenter.xy;
+            // Pass world position to fragment shader for gradient calculation
+            vWorldPos = worldPos.xy;
             
-            // Calculate distance from mouse to triangle center
-            float dist = length(mousePos - centerPos2D);
-            
-            // Apply vertical displacement based on distance from mouse (spherical raise)
-            float verticalDisplacement = 0.0;
-            if (dist < influenceRadius && dist > 0.0) {
-              float normalizedDist = dist / influenceRadius;
-              float influence = pow(1.0 - normalizedDist, 2.5);
-              
-              // Push triangles up vertically based on distance - closer = higher (raise)
-              verticalDisplacement = influence * maxDistortion;
-            }
-            
-            // Apply vertical raise from mouse interaction
-            worldPos.y += verticalDisplacement;
-            
-            // Apply existing offsetY (for scroll animation)
+            // Apply offsetY (for scroll animation)
             worldPos.y += instanceOffsetY;
             
             gl_Position = projectionMatrix * modelViewMatrix * worldPos;
           }
         `,
         fragmentShader: `
-          varying vec3 vColor;
+          uniform vec2 uResolution;
+          uniform float uAspectRatio;
+          uniform vec2 uGradientOrigin;
+          uniform float uGradientScale;
+          uniform vec3 uColorStart;
+          uniform vec3 uColorEnd;
+          uniform float uBurnIntensity;
+          uniform float uNoiseScale;
+          varying vec2 vWorldPos;
+          
+          // Simple hash function for dithering and noise
+          float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * vec3(443.8975, 397.2973, 491.1871));
+            p3 += dot(p3, p3.yzx + 19.19);
+            return fract((p3.x + p3.y) * p3.z);
+          }
+          
+          // Fractal noise for texture
+          float noise(vec2 p) {
+            return hash(p);
+          }
+          
+          // Fractal brownian motion for richer texture
+          float fbm(vec2 p) {
+            float value = 0.0;
+            float amplitude = 0.5;
+            float frequency = 1.0;
+            for (int i = 0; i < 4; i++) {
+              value += amplitude * noise(p * frequency);
+              frequency *= 2.0;
+              amplitude *= 0.5;
+            }
+            return value;
+          }
+          
           void main() {
-            gl_FragColor = vec4(vColor, 1.0);
+            // Convert world position to screen coordinates (pixels)
+            vec2 screenPos = vWorldPos + uResolution * 0.5;
+            
+            // Convert gradient origin from normalized (0-1) to screen coordinates
+            vec2 gradientCenterScreen = uGradientOrigin * uResolution;
+            
+            // Calculate distance in screen space - this naturally creates a circular gradient
+            vec2 delta = screenPos - gradientCenterScreen;
+            float distToCenter = length(delta);
+            
+            // Normalize distance by screen diagonal for consistent gradient scale
+            // Apply gradient scale to control circle size (larger scale = smaller circle)
+            float maxDist = length(uResolution);
+            float normalizedDist = (distToCenter / maxDist) * uGradientScale;
+            
+            // Map distance to gradient progress with very smooth interpolation
+            // Use smoothstep for gradual transitions instead of hard stops
+            float progressDist = smoothstep(0.1, 0.8, normalizedDist);
+            
+            // Apply additional smoothing for ultra-smooth gradient
+            // Double smoothstep for even smoother transitions
+            float smoothProgress = progressDist * progressDist * (3.0 - 2.0 * progressDist);
+            
+            // Interpolate between start and end colors
+            vec3 color = mix(uColorStart, uColorEnd, smoothProgress);
+            
+            // Generate procedural noise texture (sparser by using thresholding)
+            vec2 normalizedPos = screenPos / uResolution;
+            vec2 noiseCoord = normalizedPos * uNoiseScale;
+            float noiseValue = fbm(noiseCoord);
+            
+            // Make noise sparser by thresholding - only apply burn where noise is above a threshold
+            float noiseThreshold = 0.5;
+            float sparseNoise = smoothstep(noiseThreshold, noiseThreshold + 0.2, noiseValue);
+            
+            // Calculate luminance to reduce burn intensity on lighter tones
+            float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+            float burnModulator = 1.0 - smoothstep(0.3, 0.9, luminance); // Less burn on lighter colors
+            
+            // Apply burn blend mode: darken the color based on sparse noise
+            // Reduced intensity on lighter tones
+            color = color * (1.0 - sparseNoise * uBurnIntensity * burnModulator);
+            
+            // Add subtle dithering to reduce banding (1/255.0 for 8-bit dither)
+            float dither = (hash(gl_FragCoord.xy) - 0.5) / 255.0;
+            color += dither;
+            
+            gl_FragColor = vec4(color, 1.0);
           }
         `,
         side: THREE.DoubleSide,
@@ -349,63 +480,23 @@ export default function TessellatedCanvas({
         downwardTriangles.length
       );
 
-      // Set up instance colors, centers, and offsetY as instanced attributes
-      const upwardColors = new Float32Array(upwardTriangles.length * 3);
-      const downwardColors = new Float32Array(downwardTriangles.length * 3);
-      const upwardCenters = new Float32Array(upwardTriangles.length * 3);
-      const downwardCenters = new Float32Array(downwardTriangles.length * 3);
+      // Set up instance offsetY as instanced attribute (colors now in shader)
       const upwardOffsetY = new Float32Array(upwardTriangles.length);
       const downwardOffsetY = new Float32Array(downwardTriangles.length);
 
       upwardTriangles.forEach((triangle, i) => {
-        upwardColors[i * 3] = triangle.color.r;
-        upwardColors[i * 3 + 1] = triangle.color.g;
-        upwardColors[i * 3 + 2] = triangle.color.b;
-
-        const x = triangle.centerX - width / 2;
-        const y = height / 2 - triangle.centerY;
-        upwardCenters[i * 3] = x;
-        upwardCenters[i * 3 + 1] = y;
-        upwardCenters[i * 3 + 2] = 0;
-
         upwardOffsetY[i] = triangle.currentOffsetY;
       });
 
       downwardTriangles.forEach((triangle, i) => {
-        downwardColors[i * 3] = triangle.color.r;
-        downwardColors[i * 3 + 1] = triangle.color.g;
-        downwardColors[i * 3 + 2] = triangle.color.b;
-
-        const x = triangle.centerX - width / 2;
-        const y = height / 2 - triangle.centerY;
-        downwardCenters[i * 3] = x;
-        downwardCenters[i * 3 + 1] = y;
-        downwardCenters[i * 3 + 2] = 0;
-
         downwardOffsetY[i] = triangle.currentOffsetY;
       });
 
-      upwardGeometry.setAttribute(
-        "instanceColor",
-        new THREE.InstancedBufferAttribute(upwardColors, 3)
-      );
-      upwardGeometry.setAttribute(
-        "instanceCenter",
-        new THREE.InstancedBufferAttribute(upwardCenters, 3)
-      );
       upwardGeometry.setAttribute(
         "instanceOffsetY",
         new THREE.InstancedBufferAttribute(upwardOffsetY, 1)
       );
 
-      downwardGeometry.setAttribute(
-        "instanceColor",
-        new THREE.InstancedBufferAttribute(downwardColors, 3)
-      );
-      downwardGeometry.setAttribute(
-        "instanceCenter",
-        new THREE.InstancedBufferAttribute(downwardCenters, 3)
-      );
       downwardGeometry.setAttribute(
         "instanceOffsetY",
         new THREE.InstancedBufferAttribute(downwardOffsetY, 1)
@@ -504,66 +595,14 @@ export default function TessellatedCanvas({
       }
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-
     const animate = () => {
       if (!rendererRef.current || !sceneRef.current || !cameraRef.current)
         return;
 
-      const mouse = mouseRef.current;
-      const influenceRadius = 200;
-      const maxLift = 25;
       const matrix = matrixRef.current;
 
-      // Convert mouse screen coordinates to world coordinates
-      const mouseWorldX = mouse.x - width / 2;
-      const mouseWorldY = height / 2 - mouse.y;
-
-      // Update mouse position uniform
-      if (upwardInstancedMeshRef.current) {
-        const material = upwardInstancedMeshRef.current
-          .material as THREE.ShaderMaterial;
-        material.uniforms.mousePos.value.set(mouseWorldX, mouseWorldY);
-      }
-      if (downwardInstancedMeshRef.current) {
-        const material = downwardInstancedMeshRef.current
-          .material as THREE.ShaderMaterial;
-        material.uniforms.mousePos.value.set(mouseWorldX, mouseWorldY);
-      }
-
       trianglesRef.current.forEach((triangle) => {
-        const distance = Math.sqrt(
-          Math.pow(mouse.x - triangle.centerX, 2) +
-            Math.pow(mouse.y - triangle.centerY, 2)
-        );
-
-        if (distance < influenceRadius) {
-          const normalizedDistance = distance / influenceRadius;
-          const influence = Math.pow(1 - normalizedDistance, 2.5);
-          triangle.targetOffsetY = -influence * maxLift;
-        } else {
-          triangle.targetOffsetY = 0;
-        }
-
-        const springStrength = 0.05;
-        const damping = 0.88;
-        const force =
-          (triangle.targetOffsetY - triangle.currentOffsetY) * springStrength;
-        triangle.velocity += force;
-        triangle.velocity *= damping;
-        triangle.currentOffsetY += triangle.velocity;
-
-        if (
-          Math.abs(triangle.currentOffsetY) < 0.01 &&
-          Math.abs(triangle.velocity) < 0.01
-        ) {
-          triangle.currentOffsetY = 0;
-          triangle.velocity = 0;
-        }
-
-        // Update instance matrix (position and scale only, depression handled in shader)
+        // Update instance matrix (position and scale only)
         const x = triangle.centerX - width / 2;
         const baseY = height / 2 - triangle.centerY;
 
@@ -627,12 +666,10 @@ export default function TessellatedCanvas({
 
     initTriangles();
     window.addEventListener("resize", handleResize);
-    window.addEventListener("mousemove", handleMouseMove);
     animate();
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }

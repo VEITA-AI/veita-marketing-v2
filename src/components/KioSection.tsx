@@ -8,7 +8,6 @@ import { Tunnel } from "./Tunnel";
 
 export const KioSection: React.FC = () => {
   const sectionRef = React.useRef<HTMLDivElement>(null);
-  const zoomTargetRef = React.useRef<HTMLSpanElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const elementContainerRef = React.useRef<HTMLDivElement>(null);
   const overlayRef = React.useRef<HTMLDivElement>(null);
@@ -22,248 +21,258 @@ export const KioSection: React.FC = () => {
   const kio3Ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    setTimeout(() => {
-      if (
-        !containerRef.current ||
-        !elementContainerRef.current ||
-        !sectionRef.current ||
-        !zoomTargetRef.current ||
-        !overlayRef.current ||
-        !textScrollRef.current ||
-        !content1Ref.current ||
-        !content2Ref.current ||
-        !kio1Ref.current ||
-        !kio2Ref.current ||
-        !kio3Ref.current
-      )
-        return;
-      gsap.registerPlugin(ScrollTrigger);
+    if (
+      !containerRef.current ||
+      !elementContainerRef.current ||
+      !sectionRef.current ||
+      !overlayRef.current ||
+      !textScrollRef.current ||
+      !content1Ref.current ||
+      !content2Ref.current ||
+      !kio1Ref.current ||
+      !kio2Ref.current ||
+      !kio3Ref.current
+    )
+      return;
 
-      const timeline = gsap.timeline();
+    gsap.registerPlugin(ScrollTrigger);
 
-      // Set initial state for overlay (slide from bottom, fade in)
-      gsap.set(overlayRef.current, {
+    const timeline = gsap.timeline();
+
+    // Set initial state for overlay (slide from bottom, fade in)
+    gsap.set(overlayRef.current, {
+      opacity: 0,
+      visibility: "visible",
+      force3D: true,
+    });
+
+    timeline.fromTo(
+      containerRef.current,
+      {
+        autoAlpha: 0,
+      },
+      {
+        autoAlpha: 1,
+        duration: "500ms",
+      },
+      "0"
+    );
+
+    timeline.fromTo(
+      content1Ref.current,
+      {
         opacity: 0,
-        visibility: "visible",
+        y: "100vh",
+      },
+      {
+        duration: 0.5,
+        opacity: 1,
+        y: 0,
+      },
+      "0.1" // Delay text fade-in
+    );
+
+    timeline.fromTo(
+      sectionRef.current,
+      {
+        scale: 1,
+        opacity: 1,
+      },
+      {
+        ease: "power4.in",
+        delay: 0.2,
+      }
+    );
+
+    // Slide and fade in overlay after tessellation animation completes
+    // Tessellation completes around 0.35 (0.25 + 0.1), so start overlay at 0.4
+    timeline.to(
+      overlayRef.current,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.inOut",
         force3D: true,
-      });
+      },
+      "0.3" // Start after tessellation animation completes
+    );
 
-      timeline.fromTo(
-        containerRef.current,
-        {
-          autoAlpha: 0,
-        },
-        {
-          autoAlpha: 1,
-          duration: "500ms",
-        },
-        "0"
-      );
+    timeline.fromTo(
+      textScrollRef.current,
+      {
+        y: 0,
+      },
+      {
+        y: "-90%",
+        ease: "power4.inOut",
+        duration: 1,
+      },
+      "1"
+    );
 
-      timeline.fromTo(
-        content1Ref.current,
-        {
+    timeline.fromTo(
+      content1Ref.current,
+      {
+        y: 0,
+      },
+      {
+        y: "-100vh",
+      },
+      "2"
+    );
+
+    timeline.fromTo(
+      content2Ref.current,
+      {
+        y: "100vh",
+      },
+      {
+        y: 0,
+      },
+      "2"
+    );
+
+    timeline.fromTo(
+      kio1Ref.current,
+      {
+        y: "100vh",
+      },
+      {
+        duration: 0.5,
+        y: 0,
+      },
+      "2"
+    );
+
+    timeline.fromTo(
+      kio3Ref.current,
+      {
+        y: "200vh",
+      },
+      {
+        duration: 0.5,
+        y: "100vh",
+      },
+      "3"
+    );
+
+    timeline.fromTo(
+      kio2Ref.current,
+      {
+        y: "100vh",
+      },
+      {
+        duration: 0.5,
+        y: 0,
+      },
+      "3"
+    );
+
+    timeline.fromTo(
+      kio3Ref.current,
+      {
+        y: "200vh",
+      },
+      {
+        duration: 0.5,
+        y: 0,
+      },
+      "4"
+    );
+
+    timeline.fromTo(
+      kio3Ref.current,
+      {
+        y: 0,
+      },
+      {
+        duration: 0.5,
+        y: 0,
+      },
+      "5"
+    );
+
+    // Set initial state for overlay text lines - hidden
+    const lineStates = new Map<HTMLParagraphElement, boolean>();
+    overlayTextRefs.current.forEach((lineRef) => {
+      if (lineRef) {
+        gsap.set(lineRef, {
           opacity: 0,
-        },
-        {
-          duration: 0.5,
-          opacity: 1,
-        },
-        "0.1" // Delay text fade-in
-      );
-
-      timeline.fromTo(
-        sectionRef.current,
-        {
-          scale: 1,
-          x: 0,
-          y: 0,
-          opacity: 1,
-        },
-        {
-          ease: "power4.in",
-          delay: 0.2,
-        }
-      );
-
-      // Slide and fade in overlay after tessellation animation completes
-      // Tessellation completes around 0.35 (0.25 + 0.1), so start overlay at 0.4
-      timeline.to(
-        overlayRef.current,
-        {
-          opacity: 1,
-          duration: 0.2,
-          ease: "power2.inOut",
+          visibility: "hidden",
           force3D: true,
-        },
-        "0.3" // Start after tessellation animation completes
-      );
+        });
+        lineStates.set(lineRef, false); // false = hidden
+      }
+    });
 
-      timeline.fromTo(
-        textScrollRef.current,
-        {
-          y: 0,
-        },
-        {
-          y: "-90%",
-          ease: "power4.inOut",
-          duration: 1,
-        },
-        "1"
-      );
+    // Use requestAnimationFrame to throttle updates
+    let rafId: number | null = null;
+    const viewportCenter = window.innerHeight / 2 + 100;
 
-      timeline.fromTo(
-        content1Ref.current,
-        {
-          y: 0,
-        },
-        {
-          y: "-100vh",
-        },
-        "2"
-      );
+    const updateLineVisibility = () => {
+      // Batch all getBoundingClientRect calls
+      const updates: Array<{
+        element: HTMLParagraphElement;
+        shouldBeVisible: boolean;
+      }> = [];
 
-      timeline.fromTo(
-        content2Ref.current,
-        {
-          y: "100vh",
-        },
-        {
-          y: 0,
-        },
-        "2"
-      );
-
-      timeline.fromTo(
-        kio1Ref.current,
-        {
-          y: "100vh",
-        },
-        {
-          duration: 0.5,
-          y: 0,
-        },
-        "2"
-      );
-
-      timeline.fromTo(
-        kio3Ref.current,
-        {
-          y: "200vh",
-        },
-        {
-          duration: 0.5,
-          y: "100vh",
-        },
-        "3"
-      );
-
-      timeline.fromTo(
-        kio2Ref.current,
-        {
-          y: "100vh",
-        },
-        {
-          duration: 0.5,
-          y: 0,
-        },
-        "3"
-      );
-
-      timeline.fromTo(
-        kio3Ref.current,
-        {
-          y: "200vh",
-        },
-        {
-          duration: 0.5,
-          y: 0,
-        },
-        "4"
-      );
-
-      // Set initial state for overlay text lines - hidden
-      const lineStates = new Map<HTMLParagraphElement, boolean>();
       overlayTextRefs.current.forEach((lineRef) => {
-        if (lineRef) {
-          gsap.set(lineRef, {
-            opacity: 0,
-            visibility: "hidden",
-            force3D: true,
-          });
-          lineStates.set(lineRef, false); // false = hidden
+        if (!lineRef) return;
+
+        const rect = lineRef.getBoundingClientRect();
+        const lineCenter = rect.top + rect.height / 2;
+        const shouldBeVisible = lineCenter <= viewportCenter;
+        const isCurrentlyVisible = lineStates.get(lineRef) ?? false;
+
+        // Only update if state changed
+        if (shouldBeVisible !== isCurrentlyVisible) {
+          updates.push({ element: lineRef, shouldBeVisible });
+          lineStates.set(lineRef, shouldBeVisible);
         }
       });
 
-      // Use requestAnimationFrame to throttle updates
-      let rafId: number | null = null;
-      const viewportCenter = window.innerHeight / 2 + 100;
-
-      const updateLineVisibility = () => {
-        // Batch all getBoundingClientRect calls
-        const updates: Array<{
-          element: HTMLParagraphElement;
-          shouldBeVisible: boolean;
-        }> = [];
-
-        overlayTextRefs.current.forEach((lineRef) => {
-          if (!lineRef) return;
-
-          const rect = lineRef.getBoundingClientRect();
-          const lineCenter = rect.top + rect.height / 2;
-          const shouldBeVisible = lineCenter <= viewportCenter;
-          const isCurrentlyVisible = lineStates.get(lineRef) ?? false;
-
-          // Only update if state changed
-          if (shouldBeVisible !== isCurrentlyVisible) {
-            updates.push({ element: lineRef, shouldBeVisible });
-            lineStates.set(lineRef, shouldBeVisible);
-          }
-        });
-
-        // Batch all updates - use direct style manipulation for better performance
-        // CSS transitions handle the animation smoothly on GPU
-        updates.forEach(({ element, shouldBeVisible }) => {
-          if (shouldBeVisible) {
-            element.style.visibility = "visible";
-            element.style.opacity = "1";
-          } else {
-            element.style.opacity = "0";
-            // Delay visibility change to allow fade-out
-            setTimeout(() => {
-              if (lineStates.get(element) === false) {
-                element.style.visibility = "hidden";
-              }
-            }, 300);
-          }
-        });
-
-        rafId = null;
-      };
-
-      const scrollTrigger = ScrollTrigger.create({
-        trigger: containerRef.current,
-        pin: elementContainerRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        animation: timeline,
-        scrub: true,
-        toggleActions: "play none none reverse",
-        onUpdate: () => {
-          // Throttle updates using requestAnimationFrame
-          if (rafId === null) {
-            rafId = requestAnimationFrame(updateLineVisibility);
-          }
-        },
+      // Batch all updates - use direct style manipulation for better performance
+      // CSS transitions handle the animation smoothly on GPU
+      updates.forEach(({ element, shouldBeVisible }) => {
+        if (shouldBeVisible) {
+          element.style.visibility = "visible";
+          element.style.opacity = "1";
+        } else {
+          element.style.opacity = "0";
+          // Delay visibility change to allow fade-out
+          setTimeout(() => {
+            if (lineStates.get(element) === false) {
+              element.style.visibility = "hidden";
+            }
+          }, 300);
+        }
       });
 
-      return () => {
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
+      rafId = null;
+    };
+
+    const scrollTrigger = ScrollTrigger.create({
+      trigger: containerRef.current,
+      pin: elementContainerRef.current,
+      start: "top top",
+      end: "bottom bottom",
+      animation: timeline,
+      scrub: true,
+      toggleActions: "play none none reverse",
+      onUpdate: () => {
+        // Throttle updates using requestAnimationFrame
+        if (rafId === null) {
+          rafId = requestAnimationFrame(updateLineVisibility);
         }
-        scrollTrigger.kill();
-      };
-    }, 10);
+      },
+    });
+
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      scrollTrigger.kill();
+    };
   }, []);
 
   return (
@@ -272,7 +281,9 @@ export const KioSection: React.FC = () => {
       style={{
         marginTop: "-100vh",
         width: "100%",
-        minHeight: "1000vh",
+        minHeight: "800vh",
+        height: "800vh",
+        maxHeight: "800vh",
         position: "relative",
         overflow: "hidden",
         maxWidth: "100vw",
@@ -280,7 +291,7 @@ export const KioSection: React.FC = () => {
     >
       <div
         className="absolute w-full top-0 left-0"
-        style={{ height: "100vh" }}
+        style={{ height: "200vh" }}
         ref={tessRef}
       />
       <div
@@ -340,49 +351,66 @@ export const KioSection: React.FC = () => {
                 width: "100%",
                 maxWidth: "1280px",
                 margin: "0 auto",
-                gap: "16px",
+                gap: "64px",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
                 zIndex: 10,
               }}
             >
-              <h2
-                className="text-5xl uppercase"
+              <div
                 style={{
+                  backgroundColor: "#F5F5F5",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  maxWidth: "320px",
                   WebkitFontSmoothing: "subpixel-antialiased",
                   transform: "translateZ(0)",
                   backfaceVisibility: "hidden",
                 }}
               >
-                What is a
-                <br />
-                <span
-                  className="font-bold"
+                <p
+                  className="uppercase"
                   style={{
-                    fontSize: "min(max(5vw, 11rem), 260px) !important",
+                    fontSize: "12px",
+                    marginBottom: "24px",
+                    fontFamily: "sans-serif",
                   }}
                 >
-                  KI
-                  <span
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      WebkitFontSmoothing: "subpixel-antialiased",
-                      transform: "translateZ(0)",
-                      backfaceVisibility: "hidden",
-                      textRendering: "optimizeLegibility",
-                    }}
-                  >
-                    <span ref={zoomTargetRef}></span>o
-                  </span>
-                  {""}?
-                </span>
-                <br />
-              </h2>
-              <div
-                className="max-w-lg"
-                style={{ position: "relative", flex: 1 }}
-              >
+                  INTRODUCING A NEW WAY TO BUILD.
+                </p>
+                <h4
+                  className="text-3xl font-bold"
+                  style={{
+                    marginBottom: "16px",
+                    textRendering: "optimizeLegibility",
+                  }}
+                >
+                  kio
+                </h4>
+                <p
+                  style={{
+                    fontSize: "18px",
+                    fontFamily: "monospace",
+                    marginBottom: "16px",
+                    color: "#000",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  /c · ɪː · ð/
+                </p>
+                <p
+                  style={{
+                    fontSize: "16px",
+                    fontFamily: "sans-serif",
+                    color: "#000",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Said with a soft ky sound at the start, a long ih vowel, and a
+                  light voiced th at the end
+                </p>
+              </div>
+              <div style={{ position: "relative", flex: 1 }}>
                 <div className="absolute w-full" ref={textScrollRef}>
                   <div
                     className="flex flex-col gap-12 text-5xl h-full w-full font-semibold"
@@ -606,7 +634,7 @@ export const KioSection: React.FC = () => {
                   style={{
                     backgroundColor: "red",
                     height: "calc(100vh - 200px)",
-                    borderRadius: "32px 0px",
+                    borderRadius: "32px",
                     overflow: "hidden",
                   }}
                 >
@@ -667,7 +695,7 @@ export const KioSection: React.FC = () => {
                   style={{
                     backgroundColor: "red",
                     height: "calc(100vh - 200px)",
-                    borderRadius: "32px 0px",
+                    borderRadius: "32px",
                     overflow: "hidden",
                   }}
                 >
@@ -727,7 +755,7 @@ export const KioSection: React.FC = () => {
                   style={{
                     backgroundColor: "red",
                     height: "calc(100vh - 200px)",
-                    borderRadius: "32px 0px",
+                    borderRadius: "32px",
                     overflow: "hidden",
                   }}
                 >

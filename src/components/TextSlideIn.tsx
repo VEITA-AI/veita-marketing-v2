@@ -5,25 +5,30 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
 
 interface TextSlideInProps {
-  text: string;
+  text: string | React.ReactNode;
+  delay?: number;
 }
 
-export const TextSlideIn: React.FC<TextSlideInProps> = ({ text }) => {
+export const TextSlideIn: React.FC<TextSlideInProps> = ({
+  text,
+  delay = 0,
+}) => {
   const textRef = React.useRef<HTMLDivElement>(null);
+  const textContentRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (!textRef.current) return;
+    if (!textRef.current || !textContentRef.current) return;
     gsap.registerPlugin(ScrollTrigger);
 
     gsap.fromTo(
-      textRef.current,
+      textContentRef.current,
       {
         y: 100,
-        opacity: 0,
+        delay: delay,
       },
       {
         y: 0,
-        opacity: 1,
+        delay: delay,
         stagger: 0.05,
         duration: 1,
         ease: "power4.out",
@@ -37,10 +42,18 @@ export const TextSlideIn: React.FC<TextSlideInProps> = ({ text }) => {
   }, [text, textRef]);
 
   return (
-    <div ref={textRef} className="">
+    <div
+      ref={textRef}
+      className=""
+      style={{
+        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+      }}
+    >
       <div
+        ref={textContentRef}
         style={{
-          clipPath: "polygon(0 0, 110% 0, 110% 110%, 0 110%)",
+          willChange: "transform",
+          transform: "translateY(100px) ",
         }}
       >
         {text}

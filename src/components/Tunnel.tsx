@@ -7,8 +7,8 @@ interface TunnelProps {
 export const Tunnel: React.FC<TunnelProps> = ({ color = "#0038FF" }) => {
   return (
     <svg
-      width="1464"
-      height="1069"
+      width="100%"
+      height="100%"
       viewBox="0 0 1464 1069"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

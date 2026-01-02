@@ -8,6 +8,7 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { KioSection } from "@/components/KioSection";
 import { TextZoomSection } from "@/components/TextZoomSection";
+import { WFESection } from "@/components/WFESection";
 import React from "react";
 
 export default function Home() {
@@ -28,7 +29,8 @@ export default function Home() {
 
       {/* Hero Section */}
       <HeroSection />
-      <KioSection />
+      {/* <KioSection /> */}
+      <WFESection />
       {/* <TextZoomSection /> */}
 
       {/* <CardSlideOverSection /> */}
@@ -36,7 +38,7 @@ export default function Home() {
       {/* Clients Section */}
       {/* <CollaborationsSection /> */}
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
