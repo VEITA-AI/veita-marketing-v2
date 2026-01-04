@@ -32,7 +32,7 @@ interface TessellatedCanvasConfig {
 }
 
 interface TessellatedCanvasProps {
-  containerRef?: React.RefObject<HTMLElement>;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
   config?: TessellatedCanvasConfig;
 }
 
@@ -63,7 +63,7 @@ export default function TessellatedCanvas({
   const trianglesRef = useRef<TriangleData[]>([]);
   const upwardInstancedMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const downwardInstancedMeshRef = useRef<THREE.InstancedMesh | null>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(0);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const matrixRef = useRef(new THREE.Matrix4());
 
