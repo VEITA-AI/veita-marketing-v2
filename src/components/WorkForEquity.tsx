@@ -9,7 +9,7 @@ import { EntrepreneursContent } from "./EntrepreneursContent";
 import { InvestorsContent } from "./InvestorsContent";
 import { VeitaClosing } from "./VeitaClosing";
 
-export const WFESection: React.FC = () => {
+export const WorkForEquity = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const tessRef = React.useRef<HTMLDivElement>(null);
   const textSectionRef = React.useRef<HTMLDivElement>(null);
@@ -237,9 +237,9 @@ export const WFESection: React.FC = () => {
           scale: 1,
           borderRadius: "0vh",
           duration: 0.5,
-        }
-      ),
-      "-=0.5";
+        },
+        "-=0.5"
+      );
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: container,

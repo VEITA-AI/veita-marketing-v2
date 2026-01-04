@@ -8,7 +8,7 @@
 import { HeroSection } from "@/components/HeroSection";
 import { KioSection } from "@/components/KioSection";
 // import { TextZoomSection } from "@/components/TextZoomSection";
-import { WFESection } from "@/components/WFESection";
+import { WorkForEquity } from "@/components/WorkForEquity";
 import React from "react";
 
 export default function Home() {
@@ -30,7 +30,7 @@ export default function Home() {
       {/* Hero Section */}
       <HeroSection />
       <KioSection />
-      <WFESection />
+      <WorkForEquity />
       {/* <TextZoomSection /> */}
 
       {/* <CardSlideOverSection /> */}
