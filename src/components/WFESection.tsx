@@ -20,6 +20,7 @@ export const WFESection: React.FC = () => {
   const path1Ref = React.useRef<HTMLDivElement>(null);
   const path2Ref = React.useRef<HTMLDivElement>(null);
   const path3Ref = React.useRef<HTMLDivElement>(null);
+  const path3BackdropRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (
@@ -31,7 +32,8 @@ export const WFESection: React.FC = () => {
       !section2Ref.current ||
       !path1Ref.current ||
       !path2Ref.current ||
-      !path3Ref.current
+      !path3Ref.current ||
+      !path3BackdropRef.current
     )
       return;
 
@@ -60,8 +62,12 @@ export const WFESection: React.FC = () => {
 
     const zoomTargetRect = zoomTargetRef.current!.getBoundingClientRect();
     const transformOrigin1 = {
-      x: zoomTargetRect?.left + zoomTargetRect?.width / 2 - 4,
-      y: zoomTargetRect?.top + zoomTargetRect?.height / 2 - window.innerHeight, // since we shift it down by window.innerHeight, we need to subtract it from the top
+      x: zoomTargetRect?.left + zoomTargetRect?.width / 2 - 2,
+      y:
+        zoomTargetRect?.top +
+        zoomTargetRect?.height / 2 -
+        window.innerHeight +
+        4, // since we shift it down by window.innerHeight, we need to subtract it from the top
     };
 
     gsap.set(section2Ref.current, {
@@ -106,7 +112,7 @@ export const WFESection: React.FC = () => {
         transformOrigin: `${transformOrigin1.x}px ${transformOrigin1.y}px`,
       },
       {
-        scale: 100,
+        scale: 110,
         ease: "power4.in",
         delay: 0.2,
       },
@@ -220,7 +226,20 @@ export const WFESection: React.FC = () => {
           scale: 1,
         },
         ">"
-      );
+      )
+      .fromTo(
+        path3BackdropRef.current,
+        {
+          scale: 0,
+          borderRadius: "100vh",
+        },
+        {
+          scale: 1,
+          borderRadius: "0vh",
+          duration: 0.5,
+        }
+      ),
+      "-=0.5";
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: container,
@@ -351,6 +370,11 @@ export const WFESection: React.FC = () => {
             ref={path3Ref}
             className="absolute w-full h-full top-0 left-0 opacity-0"
           >
+            <div
+              ref={path3BackdropRef}
+              className="absolute w-full h-full top-0 left-0 scale-0"
+              style={{ backgroundColor: "#fff" }}
+            />
             <VeitaClosing />
           </div>
         </div>

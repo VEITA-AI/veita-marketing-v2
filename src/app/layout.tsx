@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HashTensor",
+  title: "Veita.ai",
   description:
-    "HashTensor is a studio that blends creativity and technology to transform ideas into impactful digital products.",
+    "Veita.ai is a company studio for engineers, designers, operators, and founders who turn ideas into real companies by contributing skill, time, and judgment in exchange for ownership.",
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link
-          href="https://fonts.googleapis.com/css2?family=BBH+Bartle&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap"
           rel="stylesheet"
         />
       </head>

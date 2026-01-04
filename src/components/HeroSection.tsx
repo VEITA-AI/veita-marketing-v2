@@ -11,36 +11,21 @@ export const HeroSection: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const caretRef = React.useRef<HTMLDivElement>(null);
-  const headline1Ref = React.useRef<HTMLHeadingElement>(null);
-  const headline2Ref = React.useRef<HTMLHeadingElement>(null);
-  const body1Ref = React.useRef<HTMLParagraphElement>(null);
-  const body2Ref = React.useRef<HTMLParagraphElement>(null);
+  const zoomTargetRef = React.useRef<HTMLSpanElement>(null);
+  const section1Ref = React.useRef<HTMLDivElement>(null);
+  const section2Ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (
       !containerRef.current ||
       !contentRef.current ||
       !caretRef.current ||
-      !headline1Ref.current ||
-      !headline2Ref.current ||
-      !body1Ref.current ||
-      !body2Ref.current
+      !section1Ref.current ||
+      !section2Ref.current ||
+      !zoomTargetRef.current
     )
       return;
     gsap.registerPlugin(ScrollTrigger);
-
-    // Set initial states with GPU acceleration hints
-    // Only set visibility, let timeline handle opacity
-    gsap.set([headline1Ref.current, body1Ref.current], {
-      opacity: 1,
-      visibility: "visible",
-      force3D: true,
-    });
-    gsap.set([headline2Ref.current, body2Ref.current], {
-      opacity: 0,
-      visibility: "hidden",
-      force3D: true,
-    });
 
     const timeline = gsap.timeline({ defaults: { force3D: true } });
 
@@ -58,44 +43,55 @@ export const HeroSection: React.FC = () => {
       0
     );
 
-    // Fade out first set (headline1 and body1) - animate opacity smoothly, then hide visibility
-    timeline.to(
-      [headline1Ref.current, body1Ref.current],
+    const zoomTargetRect = zoomTargetRef.current!.getBoundingClientRect();
+    console.log(zoomTargetRect);
+    const transformOrigin = {
+      x: (zoomTargetRect?.x + zoomTargetRect?.width) / 2 - 40,
+      y:
+        (zoomTargetRect?.y + zoomTargetRect?.height - window.innerHeight / 2) /
+          2 +
+        8, // since we shift it down by window.innerHeight, we need to subtract it from the top
+    };
+
+    gsap.set(section1Ref.current, {
+      opacity: 1,
+      transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
+    });
+    gsap.set(section2Ref.current, {
+      opacity: 0,
+      transform: "scale(0)",
+      transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
+    });
+
+    timeline
+      .fromTo(
+        section1Ref.current,
+        {
+          opacity: 1,
+          scale: 1,
+          transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
+        },
+        {
+          scale: 100,
+        },
+        "0"
+      )
+      .set(section1Ref.current, {
+        opacity: 0,
+      });
+
+    timeline.fromTo(
+      section2Ref.current,
       {
         opacity: 0,
-        duration: 0.5,
-        ease: "power2.inOut",
-        force3D: true,
+        transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
+        transform: "scale(0)",
       },
-      0
-    );
-
-    // Hide visibility after opacity animation completes (at the end)
-    timeline.set(
-      [headline1Ref.current, body1Ref.current],
-      {
-        visibility: "hidden",
-      },
-      0.5
-    );
-
-    // Show visibility first, then fade in second set (headline2 and body2)
-    timeline.set(
-      [headline2Ref.current, body2Ref.current],
-      {
-        visibility: "visible",
-      },
-      0
-    );
-    timeline.to(
-      [headline2Ref.current, body2Ref.current],
       {
         opacity: 1,
-        duration: 0.5,
-        ease: "power2.inOut",
-        force3D: true,
+        transform: "scale(1)",
       },
-      0
+      "0"
     );
 
     // Create ScrollTrigger for caret animation with optimized scrubbing
@@ -206,24 +202,35 @@ export const HeroSection: React.FC = () => {
             <div className="flex items-start gap-4 md:gap-6 relative w-full h-full">
               {/* Vertical caret/cursor */}
 
-              <div className="flex flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full h-full justify-center pr-16">
+              <div
+                ref={section1Ref}
+                className="flex flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full h-full justify-center pr-16"
+              >
                 {/* Headline */}
                 <h1
-                  ref={headline1Ref}
                   className="font-normal leading-tight text-white text-8xl"
                   style={{
                     willChange: "opacity",
                     transform: "translateZ(0)",
+                    position: "relative",
+                    display: "inline-block",
+                    WebkitFontSmoothing: "subpixel-antialiased",
+                    backfaceVisibility: "hidden",
+                    textRendering: "optimizeLegibility",
                   }}
                 >
-                  <TextSlideIn text="Value belongs with" delay={0} />
-                  <TextSlideIn text="the people who" delay={0.4} />
-                  <TextSlideIn text="create it." delay={0.8} />
+                  Value belongs with <br />
+                  the pe
+                  <span ref={zoomTargetRef} style={{ display: "inline-block" }}>
+                    o
+                  </span>
+                  ple who
+                  <br />
+                  create it.
                 </h1>
 
                 {/* Body text 1 */}
                 <p
-                  ref={body1Ref}
                   className="text-white text-lg md:text-xl lg:text-xl leading-relaxed"
                   style={{
                     maxWidth: "800px",
@@ -242,10 +249,12 @@ export const HeroSection: React.FC = () => {
                   This is Work for Equity.
                 </p>
               </div>
-              <div className="flex flex-row gap-6 md:gap-8 absolute top-0 left-0 w-full pr-16 h-full items-center">
+              <div
+                ref={section2Ref}
+                className="flex flex-row gap-6 md:gap-8 absolute top-0 left-0 w-full pr-16 h-full items-center opacity-0 scale-0"
+              >
                 {/* Headline */}
                 <h1
-                  ref={headline2Ref}
                   className="font-normal leading-tight text-white text-8xl w-1/2 mb-64"
                   style={{
                     willChange: "opacity",
@@ -258,7 +267,6 @@ export const HeroSection: React.FC = () => {
 
                 {/* Body text 2 */}
                 <p
-                  ref={body2Ref}
                   className="text-white text-lg md:text-xl lg:text-xl leading-relaxed w-1/2 mt-64"
                   style={{
                     maxWidth: "800px",

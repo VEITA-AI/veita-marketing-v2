@@ -19,6 +19,7 @@ export const KioSection: React.FC = () => {
   const kio1Ref = React.useRef<HTMLDivElement>(null);
   const kio2Ref = React.useRef<HTMLDivElement>(null);
   const kio3Ref = React.useRef<HTMLDivElement>(null);
+  const kioIndicatorsRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (
@@ -157,6 +158,18 @@ export const KioSection: React.FC = () => {
     );
 
     timeline.fromTo(
+      kioIndicatorsRef.current,
+      {
+        x: 0,
+      },
+      {
+        x: 20,
+        duration: 0.5,
+      },
+      "3"
+    );
+
+    timeline.fromTo(
       kio2Ref.current,
       {
         y: "100vh",
@@ -166,6 +179,18 @@ export const KioSection: React.FC = () => {
         y: 0,
       },
       "3"
+    );
+
+    timeline.fromTo(
+      kioIndicatorsRef.current,
+      {
+        x: 20,
+      },
+      {
+        x: 40,
+        duration: 0.5,
+      },
+      "4"
     );
 
     timeline.fromTo(
@@ -190,6 +215,18 @@ export const KioSection: React.FC = () => {
         y: 0,
       },
       "5"
+    );
+
+    timeline.fromTo(
+      content2Ref.current,
+      {
+        y: 0,
+      },
+      {
+        y: "-100vh",
+        duration: 0.5,
+      },
+      "5.5"
     );
 
     // Set initial state for overlay text lines - hidden
@@ -340,7 +377,7 @@ export const KioSection: React.FC = () => {
               triangleSize: 40,
               // White color configuration
               colorStart: { r: 1, g: 1, b: 1 },
-              colorEnd: { r: 1, g: 1, b: 1 },
+              colorEnd: { r: 0.8, g: 0.8, b: 0.8 },
             }}
           />
           <div ref={content1Ref} className="absolute w-full ">
@@ -357,58 +394,65 @@ export const KioSection: React.FC = () => {
                 zIndex: 10,
               }}
             >
-              <div
-                style={{
-                  backgroundColor: "#F5F5F5",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  maxWidth: "320px",
-                  WebkitFontSmoothing: "subpixel-antialiased",
-                  transform: "translateZ(0)",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                <p
-                  className="uppercase"
+              <div className="flex flex-col gap-8 justify-end items-end">
+                <div
                   style={{
-                    fontSize: "12px",
-                    marginBottom: "24px",
-                    fontFamily: "sans-serif",
+                    backgroundColor: "#F5F5F5",
+                    borderRadius: "12px",
+                    padding: "16px",
+                    maxWidth: "320px",
+                    WebkitFontSmoothing: "subpixel-antialiased",
+                    transform: "translateZ(0)",
+                    backfaceVisibility: "hidden",
                   }}
                 >
-                  INTRODUCING A NEW WAY TO BUILD.
-                </p>
-                <h4
-                  className="text-3xl font-bold"
-                  style={{
-                    marginBottom: "16px",
-                    textRendering: "optimizeLegibility",
-                  }}
-                >
-                  kio
-                </h4>
-                <p
-                  style={{
-                    fontSize: "18px",
-                    fontFamily: "monospace",
-                    marginBottom: "16px",
-                    color: "#000",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  /c · ɪː · ð/
-                </p>
-                <p
-                  style={{
-                    fontSize: "16px",
-                    fontFamily: "sans-serif",
-                    color: "#000",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  Said with a soft ky sound at the start, a long ih vowel, and a
-                  light voiced th at the end
-                </p>
+                  <p
+                    className="uppercase"
+                    style={{
+                      fontSize: "12px",
+                      marginBottom: "24px",
+                      fontFamily: "sans-serif",
+                    }}
+                  >
+                    INTRODUCING A NEW WAY TO BUILD.
+                  </p>
+                  <h4
+                    className="text-3xl font-bold"
+                    style={{
+                      marginBottom: "16px",
+                      textRendering: "optimizeLegibility",
+                    }}
+                  >
+                    kio
+                  </h4>
+                  <p
+                    style={{
+                      fontSize: "18px",
+                      fontFamily: "monospace",
+                      marginBottom: "16px",
+                      color: "#000",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    /c · ɪː · ð/
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      fontFamily: "sans-serif",
+                      color: "#000",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    Said with a soft ky sound at the start, a long ih vowel, and
+                    a light voiced th at the end
+                  </p>
+                </div>
+                <img
+                  src="/GOAT 1.svg"
+                  alt="Kio Logo"
+                  style={{ width: "124px", height: "auto" }}
+                />
               </div>
               <div style={{ position: "relative", flex: 1 }}>
                 <div className="absolute w-full" ref={textScrollRef}>
@@ -615,9 +659,32 @@ export const KioSection: React.FC = () => {
                   width: "344px",
                   backgroundColor: "#F5F5F5",
                   transformOrigin: "left bottom",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderRadius: "12px",
                 }}
               >
                 <h2 className="text-2xl uppercase font-bold">Our Kios</h2>
+                <div className="flex flex-row gap-2 align-middle relative">
+                  <div
+                    className="absolute top-0 left-0 w-3 h-3 rounded-full"
+                    style={{ backgroundColor: "#303030" }}
+                    ref={kioIndicatorsRef}
+                  />
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: "#B3B3B3" }}
+                  />
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: "#B3B3B3" }}
+                  />
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: "#B3B3B3" }}
+                  />
+                </div>
               </div>
               {/* Kio 1 */}
               <div

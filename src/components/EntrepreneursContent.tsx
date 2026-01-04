@@ -25,10 +25,10 @@ export const EntrepreneursContent: React.FC<EntrepreneursContentProps> = ({
         border: "1px solid #ffffff33",
       }}
     >
-      <div
+      {/* <div
         className="absolute w-full h-full top-0 left-0 backdrop-gradient-wfe"
         style={{ filter: "blur(1px)" }}
-      />
+      /> */}
       <div
         style={{
           width: "100%",
