@@ -2,12 +2,12 @@
 
 // import { Backdrop } from "@/components/Backdrop";
 // import { CardSlideOverSection } from "@/components/CardSlideOverSection";
-import { CollaborationsSection } from "@/components/CollaborationsSection";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
+// import { CollaborationsSection } from "@/components/CollaborationsSection";
+// import { Footer } from "@/components/Footer";
+// import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { KioSection } from "@/components/KioSection";
-import { TextZoomSection } from "@/components/TextZoomSection";
+// import { TextZoomSection } from "@/components/TextZoomSection";
 import { WFESection } from "@/components/WFESection";
 import React from "react";
 

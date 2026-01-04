@@ -2,13 +2,7 @@
 
 import React from "react";
 
-interface InvestorsContentProps {
-  innerRef?: React.RefObject<HTMLDivElement>;
-}
-
-export const InvestorsContent: React.FC<InvestorsContentProps> = ({
-  innerRef,
-}) => {
+export const InvestorsContent: React.FC = () => {
   return (
     <div
       className="relative w-full h-full "
@@ -36,7 +30,6 @@ export const InvestorsContent: React.FC<InvestorsContentProps> = ({
           justifyContent: "space-between",
           alignItems: "flex-start",
           gap: "64px",
-          height: "100%",
         }}
       >
         {/* Left column - Path indicator and heading */}

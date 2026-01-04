@@ -2,13 +2,7 @@
 
 import React from "react";
 
-interface EntrepreneursContentProps {
-  innerRef?: React.RefObject<HTMLDivElement>;
-}
-
-export const EntrepreneursContent: React.FC<EntrepreneursContentProps> = ({
-  innerRef,
-}) => {
+export const EntrepreneursContent: React.FC = () => {
   return (
     <div
       className="relative w-full h-full "
@@ -88,19 +82,19 @@ export const EntrepreneursContent: React.FC<EntrepreneursContentProps> = ({
           }}
         >
           <div className="text-white text-xl mt-32">
-            If you have an idea you can't stop thinking about..
+            If you have an idea you can&apos;t stop thinking about..
             <br />
-            If you're willing to build before you fundraise..
+            If you&apos;re willing to build before you fundraise..
             <br />
-            If you'd rather own a meaningful piece of something than chase a
-            title..
+            If you&apos;d rather own a meaningful piece of something than chase
+            a title..
             <br />
             <br /> Veita wants to hear from you.
             <br />
             <br /> Bring us ideas that are early, ambitious, and a little
             uncomfortable.
             <br />
-            <br /> We'll help you turn them into a Kio.
+            <br /> We&apos;ll help you turn them into a Kio.
           </div>
 
           {/* Contact button at bottom right */}

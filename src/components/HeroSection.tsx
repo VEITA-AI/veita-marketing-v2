@@ -5,7 +5,6 @@ import { Tunnel } from "./Tunnel";
 import { LogoNoText } from "./LogoNoText";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
-import { TextSlideIn } from "./TextSlideIn";
 
 export const HeroSection: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);

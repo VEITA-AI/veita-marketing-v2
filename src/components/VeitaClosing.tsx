@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { LogoNoText } from "./LogoNoText";
 import { TheGoat } from "./TheGoat";
 
 //  maxWidth: "min(1064px, 100vw - 64px)",
