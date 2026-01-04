@@ -10,7 +10,6 @@ export const KioSection: React.FC = () => {
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const elementContainerRef = React.useRef<HTMLDivElement>(null);
-  const overlayRef = React.useRef<HTMLDivElement>(null);
   const textScrollRef = React.useRef<HTMLDivElement>(null);
   const overlayTextRefs = React.useRef<(HTMLParagraphElement | null)[]>([]);
   const content1Ref = React.useRef<HTMLDivElement>(null);
@@ -26,7 +25,6 @@ export const KioSection: React.FC = () => {
       !containerRef.current ||
       !elementContainerRef.current ||
       !sectionRef.current ||
-      !overlayRef.current ||
       !textScrollRef.current ||
       !content1Ref.current ||
       !content2Ref.current ||
@@ -41,12 +39,6 @@ export const KioSection: React.FC = () => {
     const timeline = gsap.timeline();
 
     // Set initial state for overlay (slide from bottom, fade in)
-    gsap.set(overlayRef.current, {
-      opacity: 0,
-      visibility: "visible",
-      force3D: true,
-    });
-
     timeline.fromTo(
       containerRef.current,
       {
@@ -87,16 +79,6 @@ export const KioSection: React.FC = () => {
 
     // Slide and fade in overlay after tessellation animation completes
     // Tessellation completes around 0.35 (0.25 + 0.1), so start overlay at 0.4
-    timeline.to(
-      overlayRef.current,
-      {
-        opacity: 1,
-        duration: 0.2,
-        ease: "power2.inOut",
-        force3D: true,
-      },
-      "0.3" // Start after tessellation animation completes
-    );
 
     timeline.fromTo(
       textScrollRef.current,
@@ -349,22 +331,6 @@ export const KioSection: React.FC = () => {
             height: "100vh",
           }}
         >
-          {/* Blue overlay that slides and fades in after tessellation animation */}
-          <div
-            ref={overlayRef}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              backgroundColor: "#0c1c5a", // Blue background color
-              opacity: 0,
-              willChange: "opacity, transform",
-              transform: "translateZ(0)",
-              zIndex: 0, // Behind TessellatedCanvas
-            }}
-          />
           <TessellatedCanvas
             containerRef={tessRef}
             config={{

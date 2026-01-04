@@ -13,6 +13,7 @@ export const HeroSection: React.FC = () => {
   const zoomTargetRef = React.useRef<HTMLSpanElement>(null);
   const section1Ref = React.useRef<HTMLDivElement>(null);
   const section2Ref = React.useRef<HTMLDivElement>(null);
+  const contentContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (
@@ -21,7 +22,8 @@ export const HeroSection: React.FC = () => {
       !caretRef.current ||
       !section1Ref.current ||
       !section2Ref.current ||
-      !zoomTargetRef.current
+      !zoomTargetRef.current ||
+      !contentContainerRef.current
     )
       return;
     gsap.registerPlugin(ScrollTrigger);
@@ -37,60 +39,64 @@ export const HeroSection: React.FC = () => {
       },
       {
         y: 88,
-        force3D: true,
+        duration: 0.5,
+        ease: "power3.in",
       },
       0
     );
 
     const zoomTargetRect = zoomTargetRef.current!.getBoundingClientRect();
-    console.log(zoomTargetRect);
+    const section1Rect = section1Ref.current!.getBoundingClientRect();
+
+    // Calculate the center of zoomTargetRef relative to section1Ref
+    // Transform origin needs to be relative to the element being transformed (section1Ref)
     const transformOrigin = {
-      x: (zoomTargetRect?.x + zoomTargetRect?.width) / 2 - 40,
-      y:
-        (zoomTargetRect?.y + zoomTargetRect?.height - window.innerHeight / 2) /
-          2 +
-        8, // since we shift it down by window.innerHeight, we need to subtract it from the top
+      x: zoomTargetRect.left - section1Rect.left + zoomTargetRect.width / 2,
+      y: zoomTargetRect.top - section1Rect.top + zoomTargetRect.height / 2 + 8,
     };
 
-    gsap.set(section1Ref.current, {
-      opacity: 1,
-      transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
-    });
-    gsap.set(section2Ref.current, {
-      opacity: 0,
-      transform: "scale(0)",
-      transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
-    });
-
-    timeline
-      .fromTo(
-        section1Ref.current,
-        {
-          opacity: 1,
-          scale: 1,
-          transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
-        },
-        {
-          scale: 100,
-        },
-        "0"
-      )
-      .set(section1Ref.current, {
+    timeline.fromTo(
+      section1Ref.current,
+      {
+        opacity: 1,
+        scale: 1,
+        transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
+      },
+      {
         opacity: 0,
-      });
+        scale: 100,
+        duration: 0.5,
+        ease: "power3.in",
+      },
+      "0"
+    );
 
     timeline.fromTo(
       section2Ref.current,
       {
         opacity: 0,
         transformOrigin: `${transformOrigin.x}px ${transformOrigin.y}px`,
-        transform: "scale(0)",
+        scale: 0,
       },
       {
         opacity: 1,
-        transform: "scale(1)",
+        scale: 1,
+        duration: 0.5,
+        ease: "power3.in",
       },
       "0"
+    );
+
+    timeline.fromTo(
+      section2Ref.current,
+      {
+        opacity: 1,
+      },
+      {
+        opacity: 1,
+        ease: "power3.in",
+      },
+      "1"
     );
 
     // Create ScrollTrigger for caret animation with optimized scrubbing
@@ -113,7 +119,7 @@ export const HeroSection: React.FC = () => {
       ref={containerRef}
       className="relative w-full"
       style={{
-        minHeight: "200vh",
+        minHeight: "300vh",
         overflow: "hidden",
       }}
     >
@@ -128,6 +134,7 @@ export const HeroSection: React.FC = () => {
         }}
       >
         <div
+          ref={contentContainerRef}
           className="h-screen w-full flex flex-col md:items-center md:justify-center relative mx-auto "
           style={{
             maxWidth: "min(1440px, 100vw - 64px)",
