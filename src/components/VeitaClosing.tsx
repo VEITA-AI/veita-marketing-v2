@@ -39,16 +39,16 @@ export const VeitaClosing: React.FC = () => {
         <TheGoat />
       </div>
       <div
-        className="w-full flex flex-row items-center relative"
+        className="w-full flex flex-col md:flex-row items-center relative"
         style={{ height: "100%" }}
       >
         <div className="flex items-start gap-4 md:gap-6 relative w-full h-full">
           {/* Vertical caret/cursor */}
 
-          <div className="flex flex-row gap-6 md:gap-12 absolute top-0 left-0 w-full h-full">
+          <div className="flex flex-col md:flex-row gap-2 md:gap-12 absolute top-0 left-0 w-full h-full">
             {/* Headline */}
             <h1
-              className="font-semibold leading-tight text-white text-8xl mb-64"
+              className="font-semibold leading-tight text-white text-5xl md:text-8xl md:mb-64 mb-0"
               style={{
                 willChange: "opacity",
                 transform: "translateZ(0)",

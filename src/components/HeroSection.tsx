@@ -159,9 +159,9 @@ export const HeroSection: React.FC = () => {
               <Tunnel />
             </div>
           </div>
-          <div className="flex items-center w-full h-8 absolute top-24 left-0 px-24 justify-between">
+          <div className="flex items-center w-full h-8 absolute md:top-24 top-16 left-0 md:px-24 px-4 justify-between">
             <LogoNoText />
-            <div className="flex items-center gap-16 p-2 pl-16 rounded-full bg-white/10 backdrop-blur-sm">
+            <div className="md:flex hidden items-center gap-16 p-2 pl-16 rounded-full bg-white/10 backdrop-blur-sm">
               <span className="text-white text-md font-medium">MAIN</span>
               <span className="text-white text-md font-medium">KIO</span>
               <span className="text-white text-md font-medium">WFE</span>
@@ -171,8 +171,8 @@ export const HeroSection: React.FC = () => {
               </button>
             </div>
           </div>
-          <div className="w-full flex flex-row items-center relative">
-            <div className="flex flex-col gap-6 mx-8 md:mx-24 relative">
+          <div className="w-full h-full flex flex-row items-center relative px-4 md:px-0">
+            <div className="flex flex-col gap-6 mx-8 md:mx-24 relative md:flex hidden">
               <div
                 ref={caretRef}
                 style={{
@@ -210,11 +210,11 @@ export const HeroSection: React.FC = () => {
 
               <div
                 ref={section1Ref}
-                className="flex flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full h-full justify-center pr-16"
+                className="flex flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full h-full justify-center md:pr-16 pr-0"
               >
                 {/* Headline */}
                 <h1
-                  className="font-normal leading-tight text-white text-8xl"
+                  className="font-normal leading-tight text-white md:text-8xl text-6xl"
                   style={{
                     willChange: "opacity",
                     transform: "translateZ(0)",
@@ -257,11 +257,11 @@ export const HeroSection: React.FC = () => {
               </div>
               <div
                 ref={section2Ref}
-                className="flex flex-row gap-6 md:gap-8 absolute top-0 left-0 w-full pr-16 h-full items-center opacity-0 scale-0"
+                className="flex md:flex-row flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full pr-16 h-full items-center opacity-0 scale-0 justify-center md:justify-start"
               >
                 {/* Headline */}
                 <h1
-                  className="font-normal leading-tight text-white text-8xl w-1/2 mb-64"
+                  className="font-normal leading-tight text-white md:text-8xl text-6xl md:w-1/2 w-full md:mb-64 mb-0"
                   style={{
                     willChange: "opacity",
                     transform: "translateZ(0)",
@@ -273,7 +273,7 @@ export const HeroSection: React.FC = () => {
 
                 {/* Body text 2 */}
                 <p
-                  className="text-white text-lg md:text-xl lg:text-xl leading-relaxed w-1/2 mt-64"
+                  className="text-white text-md md:text-xl lg:text-xl leading-relaxed md:w-1/2 w-full md:mt-64 mt-0"
                   style={{
                     maxWidth: "800px",
                     willChange: "opacity",

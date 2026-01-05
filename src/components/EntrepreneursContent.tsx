@@ -5,7 +5,7 @@ import React from "react";
 export const EntrepreneursContent: React.FC = () => {
   return (
     <div
-      className="relative w-full h-full "
+      className="relative w-full h-full"
       style={{
         maxWidth: "min(1064px, 100vw - 64px)",
         margin: "auto",
@@ -24,10 +24,10 @@ export const EntrepreneursContent: React.FC = () => {
         style={{ filter: "blur(1px)" }}
       /> */}
       <div
+        className="flex flex-col md:flex-row"
         style={{
           width: "100%",
           display: "flex",
-          flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "flex-start",
           gap: "64px",
@@ -81,7 +81,7 @@ export const EntrepreneursContent: React.FC = () => {
             justifyContent: "flex-end",
           }}
         >
-          <div className="text-white text-xl mt-32">
+          <div className="text-white text-md md:text-xl md:mt-32 mt-8">
             If you have an idea you can&apos;t stop thinking about..
             <br />
             If you&apos;re willing to build before you fundraise..

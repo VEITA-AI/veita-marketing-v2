@@ -360,7 +360,7 @@ export const KioSection: React.FC = () => {
                 zIndex: 10,
               }}
             >
-              <div className="flex flex-col gap-8 justify-end items-end">
+              <div className="md:flex hidden flex-col gap-8 justify-end items-end">
                 <div
                   style={{
                     backgroundColor: "#F5F5F5",
@@ -420,10 +420,16 @@ export const KioSection: React.FC = () => {
                   style={{ width: "124px", height: "auto" }}
                 />
               </div>
-              <div style={{ position: "relative", flex: 1 }}>
+              <div
+                style={{
+                  position: "relative",
+                  flex: 1,
+                  width: "calc(100% - 64px)",
+                }}
+              >
                 <div className="absolute w-full" ref={textScrollRef}>
                   <div
-                    className="flex flex-col gap-12 text-5xl h-full w-full font-semibold"
+                    className="flex flex-col gap-12 text-4xl md:text-5xl h-full w-full font-semibold"
                     style={{
                       color: "#B3B3B3",
                       zIndex: 0,
@@ -455,7 +461,7 @@ export const KioSection: React.FC = () => {
                   </div>
                   {/* Text that appears over the grey text, should be same, but will be animated in */}
                   <div
-                    className="flex flex-col gap-12 text-5xl absolute h-full w-full font-semibold"
+                    className="flex flex-col gap-12 text-4xl md:text-5xl absolute h-full w-full font-semibold"
                     style={{
                       zIndex: 1,
                       top: 0,
@@ -604,7 +610,7 @@ export const KioSection: React.FC = () => {
           </div>
           <div ref={content2Ref} className="absolute w-full h-full">
             <div
-              className="flex flex-col md:flex-col gap-4 md:items-end py-24"
+              className="flex flex-col md:flex-col gap-4 md:items-end py-24 pr-16 md:pr-0"
               style={{
                 position: "relative",
                 width: "100%",
@@ -617,7 +623,7 @@ export const KioSection: React.FC = () => {
               }}
             >
               <div
-                className="rotate-90 p-8"
+                className="rotate-90 p-8 md:flex hidden"
                 style={{
                   position: "absolute",
                   top: 0,
@@ -625,7 +631,6 @@ export const KioSection: React.FC = () => {
                   width: "344px",
                   backgroundColor: "#F5F5F5",
                   transformOrigin: "left bottom",
-                  display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   borderRadius: "12px",
@@ -663,7 +668,7 @@ export const KioSection: React.FC = () => {
                 }}
               >
                 <div
-                  className="absolute w-full h-full p-8 flex text-white gap-32"
+                  className="absolute w-full h-full p-8 flex text-white gap-16 md:gap-32 flex-col md:flex-row"
                   style={{
                     backgroundColor: "red",
                     height: "calc(100vh - 200px)",
@@ -695,9 +700,17 @@ export const KioSection: React.FC = () => {
                       <h3 className="text-3xl font-semibold">EasyAudit</h3>
                       <h4 className="text-xl">Over the fence. Running free.</h4>
                     </div>
-                    <div className="text-xl">Live Website</div>
+                    <div className="text-xl">
+                      <a
+                        href="https://easyaudit.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Live Website
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end p-8 z-10">
+                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
                     <p>
                       EasyAudit is Veita’s first proof that the model works.
                     </p>
@@ -724,7 +737,7 @@ export const KioSection: React.FC = () => {
                 }}
               >
                 <div
-                  className="absolute w-full h-full p-8 flex text-white gap-32"
+                  className="absolute w-full h-full p-8 flex text-white gap-16 md:gap-32 flex-col md:flex-row"
                   style={{
                     backgroundColor: "red",
                     height: "calc(100vh - 200px)",
@@ -760,7 +773,7 @@ export const KioSection: React.FC = () => {
                     </div>
                     <div className="text-xl">Coming Soon</div>
                   </div>
-                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end p-8 z-10">
+                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
                     <p>
                       Dataflow is an agentic email and task assistant, and it’s
                       the next Kio approaching independence.
@@ -784,7 +797,7 @@ export const KioSection: React.FC = () => {
                 }}
               >
                 <div
-                  className="absolute w-full h-full p-8 flex text-white gap-32"
+                  className="absolute w-full h-full p-8 flex text-white gap-16 md:gap-32 flex-col md:flex-row"
                   style={{
                     backgroundColor: "red",
                     height: "calc(100vh - 200px)",
@@ -818,7 +831,7 @@ export const KioSection: React.FC = () => {
                     </div>
                     <div className="text-xl">Coming Soon</div>
                   </div>
-                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end p-8 z-10">
+                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
                     <p>Some Kios are better kept quiet until they’re ready.</p>
                     <p>
                       This one is early, intentional, and already taking shape.

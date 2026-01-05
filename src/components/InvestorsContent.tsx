@@ -21,15 +21,13 @@ export const InvestorsContent: React.FC = () => {
       }}
     >
       <div
+        className="flex flex-col md:flex-row gap-4 md:gap-16"
         style={{
           width: "100%",
           display: "flex",
-          flex: 1,
-          height: "100%",
-          flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          gap: "64px",
+          zIndex: 1,
         }}
       >
         {/* Left column - Path indicator and heading */}
@@ -77,7 +75,7 @@ export const InvestorsContent: React.FC = () => {
             height: "100%",
           }}
         >
-          <div className=" text-xl ">
+          <div className="text-md md:text-xl md:mt-32 mt-0">
             Veita is not chasing capital. <br />
             <br />
             But we’re always open to conversations with investors who believe

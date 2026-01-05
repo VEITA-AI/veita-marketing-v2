@@ -325,11 +325,11 @@ export const WorkForEquity = () => {
                 height: "100%",
               }}
             >
-              <h2 className="text-7xl text-white">
+              <h2 className="text-6xl md:text-7xl text-white">
                 W<span ref={zoomTargetRef}>o</span>
                 rk for Equity
               </h2>
-              <p className="text-4xl text-white mt-16 md:pl-64">
+              <p className="text-md md:text-4xl text-white mt-16 md:pl-64">
                 <span
                   style={{ display: "inline-block", width: "min(100px, 10vw)" }}
                 />
