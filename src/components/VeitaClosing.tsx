@@ -48,7 +48,7 @@ export const VeitaClosing: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-2 md:gap-12 absolute top-0 left-0 w-full h-full">
             {/* Headline */}
             <h1
-              className="font-semibold leading-tight text-white text-5xl md:text-8xl md:mb-64 mb-0"
+              className="font-semibold leading-tight text-white text-3xl md:text-8xl md:mb-64 mb-0"
               style={{
                 willChange: "opacity",
                 transform: "translateZ(0)",
@@ -73,19 +73,25 @@ export const VeitaClosing: React.FC = () => {
               }}
             >
               <p
-                className="text-white text-lg md:text-xl lg:text-3xl"
+                className="text-white text-lg md:text-xl lg:text-3xl mb-8 md:mb-0"
                 style={{
                   maxWidth: "800px",
                   willChange: "opacity",
                   transform: "translateZ(0)",
                 }}
               >
-                <span style={{ display: "inline-block", width: "100px" }} />
+                <span
+                  className="md:inline-block hidden"
+                  style={{ width: "100px" }}
+                />
                 One where talent outranks money, ownership follows effort, and
                 the best ideas don’t die waiting for funding.
                 <br />
                 <br />
-                <span style={{ display: "inline-block", width: "100px" }} />
+                <span
+                  className="md:inline-block hidden"
+                  style={{ width: "100px" }}
+                />
                 Born small. Built by owners. <br />
                 Aiming to be GOATs.
               </p>

@@ -214,7 +214,7 @@ export const HeroSection: React.FC = () => {
               >
                 {/* Headline */}
                 <h1
-                  className="font-normal leading-tight text-white md:text-8xl text-6xl"
+                  className="font-normal leading-tight text-white md:text-8xl text-4xl"
                   style={{
                     willChange: "opacity",
                     transform: "translateZ(0)",
@@ -237,7 +237,7 @@ export const HeroSection: React.FC = () => {
 
                 {/* Body text 1 */}
                 <p
-                  className="text-white text-lg md:text-xl lg:text-xl leading-relaxed"
+                  className="text-white text-md md:text-xl lg:text-xl leading-relaxed"
                   style={{
                     maxWidth: "800px",
                     willChange: "opacity",
@@ -257,11 +257,11 @@ export const HeroSection: React.FC = () => {
               </div>
               <div
                 ref={section2Ref}
-                className="flex md:flex-row flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full pr-16 h-full items-center opacity-0 scale-0 justify-center md:justify-start"
+                className="flex md:flex-row flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full md:pr-16 pr-0 h-full items-center opacity-0 scale-0 justify-center md:justify-start"
               >
                 {/* Headline */}
                 <h1
-                  className="font-normal leading-tight text-white md:text-8xl text-6xl md:w-1/2 w-full md:mb-64 mb-0"
+                  className="font-normal leading-tight text-white md:text-8xl text-4xl md:w-1/2 w-full md:mb-64 mb-0"
                   style={{
                     willChange: "opacity",
                     transform: "translateZ(0)",

@@ -75,7 +75,7 @@ export const InvestorsContent: React.FC = () => {
             height: "100%",
           }}
         >
-          <div className="text-md md:text-xl md:mt-32 mt-0">
+          <div className="text-sm md:text-xl md:mt-32 mt-0">
             Veita is not chasing capital. <br />
             <br />
             But we’re always open to conversations with investors who believe

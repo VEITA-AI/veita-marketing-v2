@@ -88,7 +88,7 @@ export const KioSection: React.FC = () => {
       {
         y: "-90%",
         ease: "power4.inOut",
-        duration: 1,
+        duration: 2,
       },
       "1"
     );
@@ -300,9 +300,9 @@ export const KioSection: React.FC = () => {
       style={{
         marginTop: "-100vh",
         width: "100%",
-        minHeight: "800vh",
-        height: "800vh",
-        maxHeight: "800vh",
+        minHeight: "900vh",
+        height: "900vh",
+        maxHeight: "900vh",
         position: "relative",
         overflow: "hidden",
         maxWidth: "100vw",
@@ -710,7 +710,7 @@ export const KioSection: React.FC = () => {
                       </a>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
+                  <div className="flex flex-col gap-6 text-md md:text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
                     <p>
                       EasyAudit is Veita’s first proof that the model works.
                     </p>
@@ -773,7 +773,7 @@ export const KioSection: React.FC = () => {
                     </div>
                     <div className="text-xl">Coming Soon</div>
                   </div>
-                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
+                  <div className="flex flex-col gap-6 text-md md:text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
                     <p>
                       Dataflow is an agentic email and task assistant, and it’s
                       the next Kio approaching independence.
@@ -831,7 +831,7 @@ export const KioSection: React.FC = () => {
                     </div>
                     <div className="text-xl">Coming Soon</div>
                   </div>
-                  <div className="flex flex-col gap-6 text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
+                  <div className="flex flex-col gap-6 text-md md:text-xl h-full align-bottom justify-end md:p-8 p-0 z-10">
                     <p>Some Kios are better kept quiet until they’re ready.</p>
                     <p>
                       This one is early, intentional, and already taking shape.

@@ -81,7 +81,7 @@ export const EntrepreneursContent: React.FC = () => {
             justifyContent: "flex-end",
           }}
         >
-          <div className="text-white text-md md:text-xl md:mt-32 mt-8">
+          <div className="text-white text-sm md:text-xl md:mt-32 mt-8">
             If you have an idea you can&apos;t stop thinking about..
             <br />
             If you&apos;re willing to build before you fundraise..
