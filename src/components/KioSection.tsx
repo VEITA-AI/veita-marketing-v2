@@ -343,7 +343,11 @@ export const KioSection: React.FC = () => {
               triangleSize: 40,
               // White color configuration
               colorStart: { r: 1, g: 1, b: 1 },
-              colorEnd: { r: 0.8, g: 0.8, b: 0.8 },
+              colorEnd: {
+                r: 0.9254901960784314,
+                g: 0.8745098039215686,
+                b: 0.796078431372549,
+              },
             }}
           />
           <div ref={content1Ref} className="absolute w-full ">
@@ -431,7 +435,7 @@ export const KioSection: React.FC = () => {
                   <div
                     className="flex flex-col gap-12 text-4xl md:text-5xl h-full w-full font-semibold"
                     style={{
-                      color: "#B3B3B3",
+                      color: "#ECDFCB",
                       zIndex: 0,
                     }}
                     aria-hidden="true"
@@ -465,6 +469,7 @@ export const KioSection: React.FC = () => {
                     style={{
                       zIndex: 1,
                       top: 0,
+                      color: "#E57D37",
                     }}
                     aria-hidden="true"
                   >
@@ -629,11 +634,11 @@ export const KioSection: React.FC = () => {
                   top: 0,
                   right: -248,
                   width: "344px",
-                  backgroundColor: "#F5F5F5",
                   transformOrigin: "left bottom",
                   alignItems: "center",
                   justifyContent: "space-between",
                   borderRadius: "12px",
+                  backgroundColor: "#ECDFBC",
                 }}
               >
                 <h2 className="text-2xl uppercase font-bold">Our Kios</h2>

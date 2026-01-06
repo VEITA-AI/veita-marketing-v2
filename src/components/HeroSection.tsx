@@ -258,7 +258,7 @@ export const HeroSection: React.FC = () => {
               <div
                 ref={section2Ref}
                 className="flex md:flex-row flex-col gap-6 md:gap-8 absolute top-0 left-0 w-full md:pr-16 pr-0 h-full items-center opacity-0 scale-0 justify-center md:justify-start"
-            >
+              >
                 {/* Headline */}
                 <h1
                   className="font-normal leading-tight text-white md:text-8xl text-4xl md:w-1/2 w-full md:mb-64 mb-0"
@@ -290,8 +290,6 @@ export const HeroSection: React.FC = () => {
                   <br />
                   <br /> We provide the platform, patterns, tooling, and
                   guidance. Teams do the work.
-                  <br />
-                  <br /> We takes a base 25% stake. You keep 75%.
                 </p>
               </div>
             </div>

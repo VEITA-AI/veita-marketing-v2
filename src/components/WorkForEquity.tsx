@@ -330,17 +330,11 @@ export const WorkForEquity = () => {
                 rk for Equity
               </h2>
               <p className="text-md md:text-4xl text-white mt-16 md:pl-64">
-                <span
-                  style={{ display: "inline-block", width: "min(100px, 10vw)" }}
-                />
                 Work for Equity is a simple exchange: real work for real
-                ownership. <br />
+                ownership. <br /> <br />
                 Instead of chasing permission or salary alone, builders put
                 effort into ideas they believe in and earn a stake in what they
                 create. <br /> <br />
-                <span
-                  style={{ display: "inline-block", width: "min(100px, 10vw)" }}
-                />
                 No demo days. No manufactured urgency. <br /> Just focused work,
                 aligned incentives, and shared upside.
               </p>
