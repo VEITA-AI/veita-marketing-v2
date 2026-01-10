@@ -260,7 +260,7 @@ export const WorkForEquity = () => {
       style={{
         width: "100vw",
         height: "825vh",
-        marginTop: "-125vh",
+        marginTop: "-150vh",
         position: "relative",
         overflow: "hidden",
         clipPath: "inset(0 0 0 0)",
