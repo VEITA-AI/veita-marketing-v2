@@ -1,5 +1,5 @@
 {
-  "name": "hashtensor",
+  "name": "veita-marketing",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,22 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@material-tailwind/react": "^2.1.10",
-    "@types/gsap": "^1.20.2",
-    "@types/nodemailer": "^6.4.17",
-    "@types/three": "^0.170.0",
+    "@anthropic-ai/sdk": "^0.125.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "gsap": "^3.12.5",
     "lucide-react": "^0.456.0",
     "next": "16.1.1",
-    "nodemailer": "^6.9.16",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "split-type": "^0.3.4",
     "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7",
-    "three": "^0.171.0"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,6 +1,6 @@
-import withMT from "@material-tailwind/react/utils/withMT";
+import type { Config } from "tailwindcss";
 
-module.exports = withMT({
+const config: Config = {
   darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,58 +9,33 @@ module.exports = withMT({
   ],
   theme: {
     extend: {
-      container: {
-        center: true,
-        padding: "2rem",
-        screens: {
-          sm: "600px",
-          md: "700px",
-          lg: "1000px",
-          xl: "1300px",
-          "2xl": "1300px", // Customize as needed
-        },
+      fontFamily: {
+        display: ['"Bricolage Grotesque"', "sans-serif"],
+        sans: ['"Schibsted Grotesk"', "system-ui", "sans-serif"],
+        wordmark: ['"Outfit"', "sans-serif"],
+        mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
       },
       colors: {
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        surface: "var(--surface)",
+        "body-fg": "var(--body-fg)",
+        border: "var(--border)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+        secondary: "var(--secondary)",
+        sky: "var(--sky)",
+        ember: {
+          DEFAULT: "var(--ember)",
+          soft: "var(--ember-soft)",
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
-        },
+        tint: "var(--tint)",
+        "navy-deep": "var(--navy-deep)",
+        success: "var(--success)",
+        amber: "var(--amber)",
+        destructive: "#e40014",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -71,4 +46,6 @@ module.exports = withMT({
   },
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   plugins: [require("tailwindcss-animate")],
-});
+};
+
+export default config;

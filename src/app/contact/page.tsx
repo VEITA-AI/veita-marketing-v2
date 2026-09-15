@@ -1,62 +1,47 @@
-"use client";
+import type { Metadata } from "next";
+import { SiteLayout } from "@/components/site/SiteLayout";
+import { Reveal } from "@/components/site/Reveal";
+import { Bleed, PageHero, SectionHead } from "@/components/site/Sections";
 
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { GRAINY_IMAGE } from "@/lib/various";
-import React from "react";
+export const metadata: Metadata = {
+  title: "Contact — Veita",
+  description:
+    "The onboarding agent is the real front door. Email is here if you'd rather.",
+};
 
-export default function Contact() {
-  React.useEffect(() => {
-    window.scrollTo(0, 0); // values are x,y-offset
-  }, []);
+const MONO = "font-mono uppercase tracking-[0.16em]";
 
+export default function ContactPage() {
   return (
-    <div
-      className="relative w-full"
-      style={{
-        overflowX: "clip",
-      }}
-    >
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100vh",
-          background: `radial-gradient(circle, #E6EAF2 40%, #B0BDF5 100%), ${GRAINY_IMAGE}`,
-          backgroundBlendMode: "screen",
-          backgroundSize: "100%",
-          backgroundPosition: "-50% -100%",
-          zIndex: -1,
-        }}
+    <SiteLayout>
+      <PageHero
+        eyebrow="get started"
+        title="The best way to reach us is to start talking."
+        mark="talking"
+        lede="The onboarding agent is the real front door — it's live, collaborative, and you'll get something useful out of the first conversation. Email is here if you'd rather."
+        cta
       />
-      {/* Header */}
-      <Header />
-      <div className="flex flex-col lg:flex-row gap-24 py-24 container">
-        <div style={{ flex: 1 }}>
-          <h1 className="text-primary text-5xl lg:text-7xl font-semibold">
-            Let’s create something memorable
-          </h1>
-          <p className="text-2xl mt-4">
-            We’d love to hear from you! Whether it’s a big vision or a small
-            idea scribbled on a napkin, drop us a message or shoot us an
-            email—whatever works best for you. We’ll make sure to get back to
-            you :)
-          </p>
-          <div className="mt-10 flex flex-col gap-2 rounded-3xl border p-8 border-primary">
-            <h2 className="text-3xl">Email</h2>
-            <a
-              className="text-xl lg:text-4xl text-blue-950"
-              href="mailto:hashtensor@gmail.com"
+
+      <Bleed className="py-20 md:py-24">
+        <SectionHead eyebrow="the other way" />
+        <Reveal>
+          <a
+            href="mailto:hello@veita.com"
+            className="group flex items-baseline justify-between gap-6 py-8 transition-colors hover:bg-[rgba(54,123,192,0.05)]"
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
+            <span className="font-display text-[28px] md:text-[38px]">
+              hello@veita.com
+            </span>
+            <span
+              className={`${MONO} shrink-0 text-[9.5px] transition-all group-hover:translate-x-1`}
+              style={{ color: "var(--ember)" }}
             >
-              hashtensor@gmail.com
-            </a>
-          </div>
-        </div>
-        <div style={{ flex: 1 }}>{/* <ContactForm /> */}</div>
-      </div>
-      <Footer />
-    </div>
+              email us →
+            </span>
+          </a>
+        </Reveal>
+      </Bleed>
+    </SiteLayout>
   );
 }
