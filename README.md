@@ -39,6 +39,7 @@ affected surfaces say what is missing rather than failing silently.
 | `ANTHROPIC_API_KEY` | `/api/chat` | Claude path |
 | `CHAT_PROVIDER` | `/api/chat` | `gemini` \| `anthropic`; auto-selects otherwise |
 | `ADMIN_PASSCODE` | `/api/admin` | `/admin` reports it is unconfigured without this |
+| `SESSIONS_BUCKET` | `/api/session`, `/api/chat` | Defaults to `veita-marketing-sessions` |
 
 ### The onboarding agent
 
@@ -68,8 +69,30 @@ Model availability was probed directly against the project rather than assumed:
 used. An id the project can't reach returns a message saying so, rather than a
 generic failure.
 
-The founder dashboard behind `/admin` still needs a datastore; the passcode gate
-is in place but unlocks nothing yet.
+### Founder sessions
+
+Every conversation is kept. `/start` opens a session the moment intake
+completes, and `/api/chat` appends each turn — the founder's message and
+Kyndred's reply — after the response has streamed, so recording never delays an
+answer.
+
+Storage is a private Cloud Storage bucket, one JSON object per session under
+`sessions/{id}.json`, authenticated with the same ADC as the agent. Object
+storage rather than a database: the volume is a handful of sessions, the shape
+is a document, the only queries are "list" and "read one", and the whole archive
+can be downloaded or handed to Saga without an export step. Firestore would have
+forced a permanent choice of database mode and region for no benefit here.
+
+The bucket holds names, emails and business plans, so it has uniform
+bucket-level access with **public access prevention enforced**.
+
+Persistence is optional in the same way everything else is: with no project
+configured, `/api/session` returns `{ id: null }` and the interview runs
+unrecorded rather than failing.
+
+`/admin` is the dashboard — passcode in, then the session list, and a transcript
+with the intake answers beside it. The passcode is exchanged for a signed,
+12-hour, httpOnly cookie; it is the HMAC key, so changing it signs everyone out.
 
 ## Design system
 
@@ -97,6 +120,11 @@ Rules of the system:
   driving copy with it makes sections render blank at scroll 0 and fade out on
   the way up.
 - Everything collapses to a hard cut under `prefers-reduced-motion`.
+- **A phone is not a narrow desktop.** Vertical rhythm is roughly two thirds of
+  the desktop value under `md`, mono captions have an 10.5px floor, tap targets
+  reach ~40px, and any two-up row that would leave either half under ~40ch
+  stacks instead. Verified at 320 / 360 / 390 / 430px: no page scrolls
+  horizontally.
 
 Tokens live in `src/app/globals.css` (`:root`). Shared furniture is in
 `src/components/site/`.
@@ -111,10 +139,3 @@ Everything is served locally — the site makes **zero external requests**.
 - The logo is inline SVG in `src/components/site/VeitaLogo.tsx` so it inherits
   theme tokens; `public/veita-mark.svg` and `public/favicon.svg` are the
   standalone copies.
-
-## Redesign prototypes
-
-`src/app/lab/` holds the three directions that were compared before picking
-Operating Record (`/lab/record`, `/lab/instrument`, `/lab/signal`). They are not
-linked from the site. **Delete the directory before deploying** unless you want
-them public.

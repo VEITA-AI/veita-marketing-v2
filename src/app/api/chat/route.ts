@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { appendMessages, type StoredMessage } from "@/lib/sessions";
 
 export const runtime = "nodejs";
 
@@ -137,9 +138,10 @@ function sseError(message: string) {
 }
 
 export async function POST(request: Request) {
-  const { messages, intake } = (await request.json()) as {
+  const { messages, intake, sessionId } = (await request.json()) as {
     messages?: ChatMessage[];
     intake?: Intake;
+    sessionId?: string;
   };
 
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -164,6 +166,12 @@ export async function POST(request: Request) {
           encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
         );
 
+      let reply = "";
+      const emit = (text: string) => {
+        reply += text;
+        send({ text });
+      };
+
       try {
         if (provider === "gemini") {
           const ai = geminiClient();
@@ -178,7 +186,7 @@ export async function POST(request: Request) {
           });
           for await (const chunk of result) {
             const text = chunk.text;
-            if (text) send({ text });
+            if (text) emit(text);
           }
         } else {
           const client = new Anthropic();
@@ -200,7 +208,7 @@ export async function POST(request: Request) {
             })),
           });
 
-          agentStream.on("text", (delta) => send({ text: delta }));
+          agentStream.on("text", (delta) => emit(delta));
 
           const final = await agentStream.finalMessage();
           if (final.stop_reason === "refusal") {
@@ -212,6 +220,8 @@ export async function POST(request: Request) {
       } finally {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
+        // After the response is closed, so recording never delays it.
+        await record(sessionId, messages, reply);
       }
     },
   });
@@ -223,6 +233,37 @@ export async function POST(request: Request) {
       Connection: "keep-alive",
     },
   });
+}
+
+/**
+ * Appends the turn just exchanged to the founder's session.
+ *
+ * The client sends the whole history each time, so only the final user message
+ * is new. The opening `[system]` instruction is stage direction, not something
+ * the founder said, so it is not kept. Failures are logged and swallowed: a
+ * storage problem must never break a live conversation.
+ */
+async function record(
+  sessionId: string | undefined,
+  messages: ChatMessage[],
+  reply: string
+) {
+  if (!sessionId) return;
+  const at = new Date().toISOString();
+  const turn: { role: "user" | "assistant"; content: string; at: string }[] = [];
+
+  const last = messages[messages.length - 1];
+  if (last?.role === "user" && !last.content.startsWith("[system]")) {
+    turn.push({ role: "user", content: last.content, at });
+  }
+  if (reply.trim()) turn.push({ role: "assistant", content: reply, at });
+  if (!turn.length) return;
+
+  try {
+    await appendMessages(sessionId, turn);
+  } catch (e) {
+    console.error("Could not record a founder turn:", e);
+  }
 }
 
 /** Keep provider failures legible without leaking anything from the response. */

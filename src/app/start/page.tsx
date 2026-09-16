@@ -26,6 +26,7 @@ const PANEL_INDEX: Record<Panel, number> = {
 
 export default function StartPage() {
   const [intake, setIntake] = useState<IntakeResult | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [panel, setPanel] = useState<Panel>("get-started");
   const [userTurns, setUserTurns] = useState(0);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
@@ -48,7 +49,21 @@ export default function StartPage() {
     setPanel(next);
   }
 
-  function completeIntake(result: IntakeResult) {
+  async function completeIntake(result: IntakeResult) {
+    // Opened before the interview mounts so the agent's opening question is
+    // part of the saved transcript. The route never throws and never blocks on
+    // storage, so this costs one fast round-trip at worst.
+    try {
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
+      });
+      const { id } = await res.json();
+      setSessionId(id ?? null);
+    } catch {
+      setSessionId(null);
+    }
     setIntake(result);
     setPanel("interview");
   }
@@ -105,7 +120,11 @@ export default function StartPage() {
               <GetStarted onComplete={completeIntake} />
             )}
             {panel === "interview" && intake && (
-              <Interview intake={intake} onUserMessageCount={trackUserTurns} />
+              <Interview
+                intake={intake}
+                sessionId={sessionId}
+                onUserMessageCount={trackUserTurns}
+              />
             )}
             {panel === "dimensions" && <Dimensions />}
             {panel === "profile" && <FounderProfile />}

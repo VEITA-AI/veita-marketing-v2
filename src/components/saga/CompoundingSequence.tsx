@@ -478,7 +478,7 @@ export function CompoundingSequence() {
         {/* The story, inside the space rather than beside it */}
         <div className="relative flex h-full flex-col justify-center">
           <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
-            <div className="max-w-[46ch] pb-44 md:pb-36">
+            <div className="max-w-[46ch] pb-28 md:pb-36">
               <div className="flex items-center gap-1.5">
                 {BEATS.map((_, i) => (
                   <span
@@ -502,7 +502,7 @@ export function CompoundingSequence() {
                 ))}
               </div>
 
-              <div className="relative mt-8 min-h-[320px] md:min-h-[340px]">
+              <div className="relative mt-7 min-h-[268px] md:mt-8 md:min-h-[340px]">
                 {BEATS.map((b, i) => {
                   const active = i === beat;
                   return (
@@ -545,15 +545,15 @@ export function CompoundingSequence() {
                           }}
                         />
                         <span
-                          className="font-mono text-[10px] uppercase"
-                          style={{ letterSpacing: "0.22em", color: "var(--ember)" }}
+                          className="font-mono text-[10.5px] uppercase tracking-[0.14em] md:text-[10px] md:tracking-[0.22em]"
+                          style={{ color: "var(--ember)" }}
                         >
                           {b.label}
                         </span>
                       </div>
 
                       <h3
-                        className="mt-7 font-display"
+                        className="mt-5 font-display md:mt-7"
                         style={{
                           fontWeight: 500,
                           letterSpacing: "-0.035em",
@@ -564,7 +564,7 @@ export function CompoundingSequence() {
                         {active ? <Headline text={b.title} /> : b.title}
                       </h3>
                       <p
-                        className="mt-5 text-[15px] leading-[1.6]"
+                        className="mt-4 text-[15px] leading-[1.6] md:mt-5"
                         style={{ color: "var(--body-fg)" }}
                       >
                         {b.body}
@@ -596,8 +596,8 @@ export function CompoundingSequence() {
         >
           <div className="mx-auto w-full max-w-[1240px] px-6 pb-24 md:px-10 md:pb-8">
             <div
-              className="mb-3 flex items-baseline justify-between gap-4 font-mono text-[9.5px] uppercase"
-              style={{ letterSpacing: "0.2em", color: "var(--muted-fg)" }}
+              className="mb-3 flex flex-col gap-1 font-mono text-[10.5px] uppercase tracking-[0.14em] md:flex-row md:items-baseline md:justify-between md:gap-4 md:text-[9.5px] md:tracking-[0.2em]"
+              style={{ color: "var(--muted-fg)" }}
             >
               <span>
                 <span style={{ opacity: 0.55 }}>§ </span>the four kyn · live okrs
@@ -652,13 +652,13 @@ export function CompoundingSequence() {
                     />
                     <div className="min-w-0">
                       <div
-                        className="font-mono text-[9.5px] uppercase"
+                        className="font-mono text-[10.5px] uppercase md:text-[9.5px]"
                         style={{ letterSpacing: "0.16em", color: "var(--muted-fg)" }}
                       >
                         {k.name} · {k.domain}
                       </div>
                       <div
-                        className="mt-1.5 text-[12px] leading-snug"
+                        className="mt-1.5 text-[12.5px] leading-snug md:text-[12px]"
                         style={{
                           color: lit ? "var(--success)" : "var(--body-fg)",
                           transition: "color var(--dur-base) var(--ease-out-quart)",

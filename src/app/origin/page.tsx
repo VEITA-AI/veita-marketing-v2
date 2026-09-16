@@ -55,12 +55,12 @@ export default function OriginPage() {
         cta
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead eyebrow="what it means" />
         <IndexList items={MEANING} />
       </Bleed>
 
-      <Bleed className="py-20 md:py-24">
+      <Bleed className="py-14 md:py-24">
         <SectionHead eyebrow="proof points" title="Origin Kyn already operating" />
         <div className="grid md:grid-cols-2 lg:grid-cols-2">
           {PROOF.map((point, i) => (
@@ -74,7 +74,7 @@ export default function OriginPage() {
                 <div className="flex items-baseline justify-between gap-4">
                   <div className="font-display text-[30px]">{point.name}</div>
                   <span
-                    className={`${MONO} inline-flex shrink-0 items-center gap-1.5 text-[9px]`}
+                    className={`${MONO} inline-flex shrink-0 items-center gap-1.5 text-[10px] md:text-[9px]`}
                     style={{ color: "var(--success)" }}
                   >
                     <span
@@ -88,7 +88,7 @@ export default function OriginPage() {
                   {point.body}
                 </p>
                 <div
-                  className={`${MONO} mt-6 pt-4 text-[9.5px]`}
+                  className={`${MONO} mt-6 pt-4 text-[10.5px] md:text-[9.5px]`}
                   style={{
                     color: "var(--sky)",
                     borderTop: "1px solid var(--border)",

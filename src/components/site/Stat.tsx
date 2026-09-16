@@ -78,7 +78,7 @@ export function Stat({
         <span style={{ color: "var(--ember)" }}>{suffix}</span>
       </div>
       <div
-        className="mt-4 font-mono text-[10px] uppercase"
+        className="mt-4 font-mono text-[11px] uppercase md:text-[10px]"
         style={{ letterSpacing: "0.18em", color: "var(--muted-fg)" }}
       >
         {label}

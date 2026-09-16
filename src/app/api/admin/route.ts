@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
+import {
+  ADMIN_COOKIE,
+  ADMIN_TTL_SECONDS,
+  issueAdminToken,
+} from "@/lib/sessions";
 
 export const runtime = "nodejs";
 
@@ -26,10 +31,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Incorrect passcode." });
   }
 
-  // The founder-session dashboard behind this gate needs a datastore that this
-  // project doesn't have yet, so a correct passcode currently unlocks nothing.
-  return NextResponse.json({
-    ok: false,
-    error: "Passcode accepted, but the founder dashboard isn't wired up yet.",
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(ADMIN_COOKIE, issueAdminToken(expected), {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: ADMIN_TTL_SECONDS,
   });
+  return response;
+}
+
+/** Signs out by dropping the cookie. */
+export async function DELETE() {
+  const response = NextResponse.json({ ok: true });
+  response.cookies.delete(ADMIN_COOKIE);
+  return response;
 }

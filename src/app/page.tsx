@@ -87,12 +87,12 @@ export default function Home() {
           <span />
           <span />
         </div>
-        <div className="mx-auto w-full max-w-[1240px] px-6 pb-28 pt-24 md:px-10 md:pb-36 md:pt-40">
+        <div className="mx-auto w-full max-w-[1240px] px-6 pb-20 pt-14 md:px-10 md:pb-36 md:pt-40">
           <Reveal>
             <Link
               href="/saga"
-              className="pill inline-flex items-center gap-2.5 px-3.5 py-1.5 font-mono text-[10px] uppercase"
-              style={{ letterSpacing: "0.16em", color: "var(--body-fg)" }}
+              className="pill inline-flex items-center gap-2 px-3.5 py-2.5 font-mono text-[10.5px] uppercase tracking-[0.09em] md:gap-2.5 md:py-1.5 md:text-[10px] md:tracking-[0.16em]"
+              style={{ color: "var(--body-fg)" }}
             >
               <span
                 className="pulse-dot h-1 w-1 rounded-full"
@@ -105,7 +105,7 @@ export default function Home() {
 
           <Reveal delay={80}>
             <h1
-              className="text-fade mt-10 max-w-[21ch] font-display"
+              className="text-fade mt-7 max-w-[21ch] font-display md:mt-10"
               style={{
                 ...DISPLAY,
                 fontSize: "clamp(2.5rem, 1rem + 3.7vw, 4.6rem)",
@@ -117,16 +117,16 @@ export default function Home() {
           </Reveal>
 
           <Reveal delay={160}>
-            <div className="mt-14 grid gap-10 md:grid-cols-12">
+            <div className="mt-10 grid gap-8 md:mt-14 md:grid-cols-12 md:gap-10">
               <p
-                className="text-[17px] leading-[1.62] md:col-span-5"
+                className="text-[16.5px] leading-[1.6] md:col-span-5 md:text-[17px] md:leading-[1.62]"
                 style={{ color: "var(--body-fg)", letterSpacing: "-0.005em" }}
               >
                 Start a live conversation with our onboarding agent. It works
                 through your plan with you and shows you where the leverage is —
                 before anyone forms a judgment.
               </p>
-              <div className="flex flex-wrap items-start gap-7 md:col-span-6 md:col-start-7 md:justify-end">
+              <div className="flex flex-wrap items-center gap-x-7 gap-y-5 md:col-span-6 md:col-start-7 md:items-start md:justify-end">
                 <CtaButton label="Talk to our onboarding agent" />
                 <GhostLink href="/saga">Explore the platform</GhostLink>
               </div>
@@ -135,11 +135,11 @@ export default function Home() {
           {/* Proof inside the first screen. Both Kyn are live today. */}
           <Reveal delay={240}>
             <div
-              className="mt-20 flex flex-col gap-6 pt-8 md:flex-row md:items-center md:gap-14"
+              className="mt-14 flex flex-col gap-5 pt-7 md:mt-20 md:flex-row md:items-center md:gap-14 md:pt-8"
               style={{ borderTop: "1px solid var(--rule-soft)" }}
             >
               <span
-                className="shrink-0 font-mono text-[9.5px] uppercase"
+                className="shrink-0 font-mono text-[10.5px] uppercase md:text-[9.5px]"
                 style={{ letterSpacing: "0.2em", color: "var(--muted-fg)" }}
               >
                 § operating today
@@ -149,7 +149,7 @@ export default function Home() {
                   <Link
                     key={k.name}
                     href="/origin"
-                    className="group flex items-baseline gap-3"
+                    className="group flex flex-wrap items-baseline gap-x-3 gap-y-1"
                   >
                     <span
                       className="pulse-dot h-1.5 w-1.5 shrink-0 translate-y-[-2px] rounded-full"
@@ -162,7 +162,7 @@ export default function Home() {
                       {k.name}
                     </span>
                     <span
-                      className="font-mono text-[9.5px] uppercase"
+                      className="font-mono text-[10.5px] uppercase md:text-[9.5px]"
                       style={{ letterSpacing: "0.16em", color: "var(--muted-fg)" }}
                     >
                       {k.note}
@@ -182,10 +182,10 @@ export default function Home() {
       </section>
 
       {/* Real figures, counted up. Every one is sourced from a page below. */}
-      <Bleed className="pt-24 md:pt-28">
+      <Bleed className="pt-16 md:pt-28">
         <Reveal>
           <div
-            className="grid grid-cols-2 gap-x-10 gap-y-12 pt-10 md:grid-cols-3"
+            className="grid grid-cols-2 gap-x-8 gap-y-10 pt-8 md:grid-cols-3 md:gap-x-10 md:gap-y-12 md:pt-10"
             style={{ borderTop: "1px solid var(--rule-strong)" }}
           >
             <Stat value={4} label="Elements, one system" />
@@ -196,16 +196,16 @@ export default function Home() {
       </Bleed>
 
       {/* What the operating layer actually does, against the record. */}
-      <FullBleed className="riser sweep mt-28 py-24 md:mt-32 md:py-32">
+      <FullBleed className="riser sweep mt-16 py-16 md:mt-32 md:py-32">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
-          <div className="grid gap-14 lg:grid-cols-12">
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-6">
               <Reveal>
                 <Eyebrow>the ceo layer</Eyebrow>
               </Reveal>
               <Reveal delay={80}>
                 <h2
-                  className="mt-5 max-w-[16ch] font-display"
+                  className="mt-4 max-w-[16ch] font-display md:mt-5"
                   style={{
                     ...DISPLAY,
                     fontSize: "clamp(1.9rem, 1rem + 2.4vw, 3.25rem)",
@@ -222,11 +222,11 @@ export default function Home() {
                   {RUNS.map((r, i) => (
                     <div
                       key={r.name}
-                      className="flex items-baseline gap-6 py-4"
+                      className="flex flex-col gap-1 py-3.5 md:flex-row md:items-baseline md:gap-6 md:py-4"
                       style={{ borderTop: i === 0 ? undefined : "1px solid var(--rule-soft)" }}
                     >
                       <span
-                        className="w-[110px] shrink-0 font-display text-[17px]"
+                        className="font-display text-[17px] md:w-[110px] md:shrink-0"
                         style={{ fontWeight: 500, letterSpacing: "-0.02em" }}
                       >
                         {r.name}
@@ -255,7 +255,7 @@ export default function Home() {
         </div>
       </FullBleed>
 
-      <Bleed className="pt-20 md:pt-24">
+      <Bleed className="pt-14 md:pt-24">
         <Thread />
       </Bleed>
 
@@ -264,7 +264,7 @@ export default function Home() {
         <IndexList items={ELEMENTS} />
       </Bleed>
 
-      <FullBleed className="riser mt-28 py-24 md:mt-36 md:py-32">
+      <FullBleed className="riser mt-16 py-16 md:mt-36 md:py-32">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
           <SectionHead eyebrow="two doors" title="One system. Two ways in." />
           <SplitPair items={DOORS} />

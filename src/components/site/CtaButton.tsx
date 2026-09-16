@@ -17,7 +17,7 @@ export function CtaButton({
   return (
     <Link
       href={CTA_HREF}
-      className={`${MONO} sheen group inline-flex items-center gap-2.5 px-6 py-3.5 text-[11px] ${className}`}
+      className={`${MONO} sheen group inline-flex items-center gap-2.5 px-6 py-4 text-[12px] md:py-3.5 md:text-[11px] ${className}`}
       style={{
         background: "var(--ember)",
         color: "var(--navy-deep)",
@@ -42,7 +42,7 @@ export function GhostLink({
   return (
     <Link
       href={href}
-      className={`${MONO} group inline-flex items-center gap-2 text-[10.5px]`}
+      className={`${MONO} group inline-flex items-center gap-2 py-2.5 text-[11.5px] md:py-0 md:text-[10.5px]`}
       style={{
         letterSpacing: "0.16em",
         color: "var(--muted-fg)",

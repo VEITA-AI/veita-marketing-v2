@@ -16,12 +16,13 @@ const OPENING_INSTRUCTION =
 async function streamReply(
   history: ChatMessage[],
   intake: IntakeResult,
+  sessionId: string | null,
   onDelta: (full: string, isFirst: boolean) => void
 ): Promise<string> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages: history, intake }),
+    body: JSON.stringify({ messages: history, intake, sessionId }),
   });
 
   if (!response.ok || !response.body) {
@@ -64,9 +65,11 @@ async function streamReply(
 
 export function Interview({
   intake,
+  sessionId,
   onUserMessageCount,
 }: {
   intake: IntakeResult;
+  sessionId: string | null;
   onUserMessageCount: (count: number) => void;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -75,6 +78,8 @@ export function Interview({
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const opened = useRef(false);
+  const sessionRef = useRef(sessionId);
+  sessionRef.current = sessionId;
 
   const applyDelta = (full: string, isFirst: boolean) =>
     setMessages((prev) =>
@@ -90,6 +95,7 @@ export function Interview({
     streamReply(
       [{ role: "user", content: OPENING_INSTRUCTION }],
       intake,
+      sessionRef.current,
       applyDelta
     )
       .catch((e: Error) => setError(e.message))
@@ -117,7 +123,7 @@ export function Interview({
     setThinking(true);
     setError(null);
     try {
-      await streamReply(next, intake, applyDelta);
+      await streamReply(next, intake, sessionRef.current, applyDelta);
     } catch (e) {
       setError((e as Error).message);
     } finally {

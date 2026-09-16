@@ -41,7 +41,7 @@ export default function KynPage() {
         lede="Every Kyn operates on Saga and thinks with Kyndred. That's what makes it a Kyn rather than a portfolio company — the architecture is shared, the operating layer is common, and the learning flows both ways."
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead
           eyebrow="two kinds"
           title="Same architecture. Different starting point."

@@ -61,7 +61,7 @@ export default function TransformPage() {
         cta
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead
           eyebrow="the differentiator"
           title="The onboarding agent is the proof"
@@ -87,7 +87,7 @@ export default function TransformPage() {
         </Reveal>
       </Bleed>
 
-      <Bleed className="py-20 md:py-24">
+      <Bleed className="py-14 md:py-24">
         <SectionHead eyebrow="service surface" title="Where we work" />
         <IndexList items={SERVICE_SURFACE} />
       </Bleed>

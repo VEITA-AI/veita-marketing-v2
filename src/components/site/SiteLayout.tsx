@@ -19,12 +19,25 @@ const META: React.CSSProperties = {
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showBar, setShowBar] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 12);
+      // Past the first screen, and not while the footer — which carries its
+      // own CTA — is on its way in.
+      const remaining =
+        document.documentElement.scrollHeight - (y + window.innerHeight);
+      setShowBar(y > window.innerHeight * 0.85 && remaining > 420);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   return (
@@ -127,12 +140,12 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       <main>{children}</main>
 
       <footer style={{ borderTop: RULE_SOFT }}>
-        <div className={`${SHELL} py-16`}>
-          <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
+        <div className={`${SHELL} py-12 md:py-16`}>
+          <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between md:gap-12">
             <div className="max-w-sm">
               <VeitaLogo size={22} />
               <p
-                className="mt-5 text-[14px] leading-[1.6]"
+                className="mt-5 text-[14.5px] leading-[1.6] md:text-[14px]"
                 style={{ color: "var(--body-fg)" }}
               >
                 {FOOTER_BLURB}
@@ -142,7 +155,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-16 gap-y-3.5">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-1 md:gap-x-16 md:gap-y-3.5">
               {[
                 ...NAV_ITEMS,
                 { href: "/contact", label: "Contact" },
@@ -151,7 +164,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`${MONO} text-[10px]`}
+                  className={`${MONO} py-3 text-[11px] md:py-0 md:text-[10px]`}
                   style={{
                     letterSpacing: "0.16em",
                     color: "var(--muted-fg)",
@@ -165,18 +178,32 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div
-            className={`${MONO} mt-16 flex items-center justify-between gap-4 pt-6 text-[10px]`}
+            className={`${MONO} mt-12 flex items-center justify-between gap-4 pt-6 text-[11px] md:mt-16 md:text-[10px]`}
             style={{ ...META, borderTop: RULE_SOFT }}
           >
             <span>© 2026 Veita</span>
-            <Link href="/admin">Admin login</Link>
+            <Link href="/admin" className="py-3 md:py-0">
+              Admin login
+            </Link>
           </div>
         </div>
       </footer>
 
-      <div className="pointer-events-none fixed bottom-5 right-5 z-40 md:hidden">
-        <div className="pointer-events-auto">
-          <CtaButton />
+      {/* A bar rather than a floating chip: the page can reserve room for a
+          bar, so nothing ends up permanently underneath it. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 md:hidden"
+        style={{
+          borderTop: RULE_SOFT,
+          background: "rgba(11,26,51,0.94)",
+          backdropFilter: "blur(14px)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          transform: showBar ? "translateY(0)" : "translateY(110%)",
+          transition: "transform var(--dur-medium) var(--ease-out-quart)",
+        }}
+      >
+        <div className="px-5 py-3">
+          <CtaButton className="w-full justify-center" />
         </div>
       </div>
     </div>

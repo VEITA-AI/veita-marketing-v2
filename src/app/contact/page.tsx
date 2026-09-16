@@ -22,19 +22,19 @@ export default function ContactPage() {
         cta
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead eyebrow="the other way" />
         <Reveal>
           <a
             href="mailto:hello@veita.com"
-            className="group flex items-baseline justify-between gap-6 py-8 transition-colors hover:bg-[rgba(54,123,192,0.05)]"
+            className="group flex flex-col gap-3 py-7 transition-colors hover:bg-[rgba(54,123,192,0.05)] md:flex-row md:items-baseline md:justify-between md:gap-6 md:py-8"
             style={{ borderBottom: "1px solid var(--border)" }}
           >
-            <span className="font-display text-[28px] md:text-[38px]">
+            <span className="font-display text-[26px] md:text-[38px]">
               hello@veita.com
             </span>
             <span
-              className={`${MONO} shrink-0 text-[9.5px] transition-all group-hover:translate-x-1`}
+              className={`${MONO} shrink-0 text-[10.5px] transition-all group-hover:translate-x-1 md:text-[9.5px]`}
               style={{ color: "var(--ember)" }}
             >
               email us →

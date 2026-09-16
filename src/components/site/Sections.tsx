@@ -170,7 +170,7 @@ export function Thread() {
 export function Plate({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="px-4 py-10 md:px-10"
+      className="px-4 py-7 md:px-10 md:py-10"
       style={{ background: "var(--navy-deep)", border: RULE_SOFT }}
     >
       {children}
@@ -190,8 +190,8 @@ export function SectionHead({
     <Reveal>
       <div className="md:pl-[2.5rem]">
         <div
-          className={`flex items-baseline gap-6 pb-5 ${
-            title ? "justify-between" : ""
+          className={`flex flex-col items-start gap-2.5 pb-5 md:flex-row md:items-baseline md:gap-6 ${
+            title ? "md:justify-between" : ""
           }`}
         >
           {title && (
@@ -232,15 +232,15 @@ export function PageHero({
 }) {
   return (
     <section className="atmos dot-grid">
-      <div className="mx-auto w-full max-w-[1240px] px-6 pb-14 pt-28 md:px-10 md:pb-16 md:pt-32">
-      <div className={aside ? "grid gap-14 lg:grid-cols-12" : ""}>
+      <div className="mx-auto w-full max-w-[1240px] px-6 pb-12 pt-20 md:px-10 md:pb-16 md:pt-32">
+      <div className={aside ? "grid gap-10 lg:grid-cols-12 lg:gap-14" : ""}>
         <div className={aside ? "lg:col-span-7" : ""}>
           <Reveal>
             <Eyebrow accent>{eyebrow}</Eyebrow>
           </Reveal>
           <Reveal delay={80}>
             <h1
-              className="text-fade mt-8 max-w-[17ch] font-display"
+              className="text-fade mt-6 max-w-[17ch] font-display md:mt-8"
               style={{
                 ...DISPLAY,
                 fontSize: "clamp(2.25rem, 1rem + 4.2vw, 4.25rem)",
@@ -250,9 +250,9 @@ export function PageHero({
             </h1>
           </Reveal>
           <Reveal delay={160}>
-            <div className="mt-10 pt-7" style={{ borderTop: RULE_STRONG }}>
+            <div className="mt-8 pt-6 md:mt-10 md:pt-7" style={{ borderTop: RULE_STRONG }}>
               <p
-                className="max-w-[58ch] text-[16.5px] leading-[1.6]"
+                className="max-w-[58ch] text-[16px] leading-[1.62] md:text-[16.5px] md:leading-[1.6]"
                 style={{ color: "var(--body-fg)", letterSpacing: "-0.005em" }}
               >
                 {lede}
@@ -295,13 +295,13 @@ export function IndexList({ items }: { items: IndexItem[] }) {
               {String(i + 1).padStart(2, "0")}
             </span>
             <span
-              className="font-display text-[26px] max-md:col-start-2"
+              className="font-display text-[26px]"
               style={{ fontWeight: 500, letterSpacing: "-0.03em" }}
             >
               {item.name}
             </span>
             <span
-              className="min-w-0 text-[15px] leading-[1.55] max-md:col-start-2"
+              className="min-w-0 text-[15px] leading-[1.55]"
               style={{ color: "var(--body-fg)", letterSpacing: "-0.004em" }}
             >
               {item.body}
@@ -327,7 +327,7 @@ export function IndexList({ items }: { items: IndexItem[] }) {
         );
 
         const rowClass =
-          "row-sweep underline-draw group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-8 gap-y-3 px-3 py-8 -mx-3 md:grid-cols-[2.5rem_15rem_1fr_1rem] lg:grid-cols-[2.5rem_15rem_1fr_10rem_1rem]";
+          "row-sweep underline-draw group grid grid-cols-1 items-baseline gap-x-8 gap-y-2.5 px-3 py-7 -mx-3 md:grid-cols-[2.5rem_15rem_1fr_1rem] md:gap-y-3 md:py-8 lg:grid-cols-[2.5rem_15rem_1fr_10rem_1rem]";
 
         return (
           <Reveal key={item.name} delay={i * 50}>
@@ -369,7 +369,7 @@ export function SplitPair({
         <Reveal key={item.href} delay={i * 80}>
           <Link
             href={item.href}
-            className={`group flex h-full flex-col py-14 transition-transform hover:-translate-y-1 ${
+            className={`group flex h-full flex-col py-10 transition-transform hover:-translate-y-1 md:py-14 ${
               i === 0 ? "md:pr-14" : "md:pl-14 md:pt-32"
             } max-md:border-b`}
             style={{
@@ -394,7 +394,7 @@ export function SplitPair({
               {item.body}
             </p>
             <span
-              className={`${MONO} mt-9 text-[10.5px] transition-transform group-hover:translate-x-1`}
+              className={`${MONO} mt-8 text-[11.5px] transition-transform group-hover:translate-x-1 md:mt-9 md:text-[10.5px]`}
               style={{ letterSpacing: "0.16em", color: "var(--ember)" }}
             >
               {item.cta} ▸
@@ -410,7 +410,7 @@ export function SplitPair({
 export function Panel({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="p-8 md:p-10"
+      className="p-6 md:p-10"
       style={{ background: "var(--surface)", border: RULE_SOFT }}
     >
       {children}
@@ -427,8 +427,8 @@ export function ClosingSection({
   mark?: string;
 }) {
   return (
-    <Band className="riser sweep py-24 md:py-32">
-      <div className="grid gap-12 lg:grid-cols-12">
+    <Band className="riser sweep py-16 md:py-32">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
         <Reveal className="lg:col-span-7">
           <h2
             className="font-display"
@@ -449,7 +449,7 @@ export function ClosingSection({
             >
               {AGENT_BLURB}
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-7">
+            <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-5 md:mt-9">
               <CtaButton />
               <GhostLink href="/contact">or email us</GhostLink>
             </div>

@@ -24,21 +24,21 @@ export function AppHeader({
   total?: number;
 }) {
   return (
-    <header className="flex h-14 w-full shrink-0 items-center border-b border-[var(--border)] bg-background px-6">
-      <div className="flex w-[232px] items-center gap-3">
+    <header className="flex h-14 w-full shrink-0 items-center border-b border-[var(--border)] bg-background px-4 md:px-6">
+      <div className="flex items-center gap-3 md:w-[232px]">
         <Link href="/" aria-label="Veita home" className="leading-none">
           <VeitaLogo size={17} />
         </Link>
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-[11px] text-[var(--muted-fg)] transition-colors hover:text-[var(--foreground)]"
+          className="inline-flex items-center gap-1 text-[11px] text-[var(--muted-fg)] transition-colors hover:text-[var(--foreground)] max-sm:hidden"
         >
           <ExternalLink className="h-3 w-3" />
           site
         </Link>
       </div>
 
-      <div className="flex flex-1 items-center justify-center gap-3">
+      <div className="flex flex-1 items-center justify-end gap-3 md:justify-center">
         <div className="flex items-center gap-1.5">
           {Array.from({ length: total }).map((_, i) => (
             <span
@@ -56,12 +56,12 @@ export function AppHeader({
             />
           ))}
         </div>
-        <span className="ml-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--muted-fg)]">
+        <span className="ml-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--muted-fg)] max-md:hidden">
           {phase}
         </span>
       </div>
 
-      <div className="flex w-[232px] items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 max-md:hidden md:w-[232px]">
         <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
         <span className="text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--muted-fg)]">
           live session

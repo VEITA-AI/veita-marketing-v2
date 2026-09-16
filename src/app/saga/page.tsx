@@ -56,12 +56,12 @@ export default function SagaPage() {
         }
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead eyebrow="the ceo layer" title="What Saga runs" />
         <IndexList items={FUNCTIONS} />
       </Bleed>
 
-      <Bleed className="py-20 md:py-24">
+      <Bleed className="py-14 md:py-24">
         <SectionHead
           eyebrow="the kyndred model"
           title="Every company learns. The studio compounds."
@@ -75,7 +75,7 @@ export default function SagaPage() {
         </Reveal>
       </Bleed>
 
-      <Bleed className="pb-20 md:pb-24">
+      <Bleed className="pb-14 md:pb-24">
         <Reveal>
           <p className="mx-auto max-w-3xl text-center font-display text-[26px] leading-snug md:text-[36px]">
             A dashboard tells you what happened. Saga has already done something

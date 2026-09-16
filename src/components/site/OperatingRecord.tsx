@@ -40,7 +40,7 @@ export function OperatingRecord({
   return (
     <div className="pl-0 md:border-l md:border-[var(--border)] md:pl-6">
       <div className="flex items-baseline justify-between gap-4">
-        <span className={`${MONO} text-[9.5px]`} style={{ color: "var(--muted-fg)" }}>
+        <span className={`${MONO} text-[10.5px] md:text-[9.5px]`} style={{ color: "var(--muted-fg)" }}>
           a day on saga
         </span>
         <span
@@ -55,7 +55,7 @@ export function OperatingRecord({
         {RECORD.slice(0, shown).map((entry, i) => (
           <div
             key={entry.t + entry.action}
-            className="grid grid-cols-[42px_92px_1fr] gap-x-3 py-2 font-mono text-[11.5px] leading-relaxed"
+            className="grid grid-cols-[48px_1fr] gap-x-3 gap-y-0.5 py-2 font-mono text-[12px] leading-relaxed md:grid-cols-[42px_92px_1fr] md:gap-y-0 md:text-[11.5px]"
             style={{
               borderBottom: "1px solid var(--border)",
               animation:
@@ -70,12 +70,14 @@ export function OperatingRecord({
             <span className="truncate" style={{ color: "var(--sky)" }}>
               {entry.domain}
             </span>
-            <span className="text-[var(--muted-fg)]">{entry.action}</span>
+            <span className="text-[var(--muted-fg)] max-md:col-start-2">
+              {entry.action}
+            </span>
           </div>
         ))}
       </div>
 
-      <p className="mt-5 max-w-sm text-[11.5px] leading-relaxed text-[var(--muted-fg)]">
+      <p className="mt-5 max-w-sm text-[12.5px] leading-relaxed text-[var(--muted-fg)] md:text-[11.5px]">
         {caption}
       </p>
     </div>

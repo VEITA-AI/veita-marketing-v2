@@ -42,7 +42,7 @@ export default function KyndredPage() {
         lede="Kyndred is trained on the operational record of the companies Veita builds — decisions, outcomes, financials. It's the reason a new Kyn starts with judgment instead of assumptions."
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead eyebrow="what makes it different" />
         <IndexList items={DIFFERENTIATORS} />
       </Bleed>

@@ -42,7 +42,7 @@ export default function StudioPage() {
         lede="Veita conceives, capitalises and builds companies directly. The interesting part isn't any single company — it's what the studio learns from all of them."
       />
 
-      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
+      <Bleed className="pb-14 pt-10 md:pb-24 md:pt-16">
         <SectionHead eyebrow="the why" />
         <IndexList items={REASONS} />
       </Bleed>

@@ -330,7 +330,7 @@ export function KyndredLoop() {
         )}
       </div>
 
-      <div className="mt-6 flex flex-wrap justify-center gap-6 text-[12.5px] text-[var(--muted-fg)]">
+      <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2.5 text-[13px] text-[var(--muted-fg)] md:text-[12.5px]">
         <span className="inline-flex items-center gap-2">
           <i
             className="inline-block h-2 w-2 rounded-full"
@@ -347,7 +347,7 @@ export function KyndredLoop() {
         </span>
       </div>
 
-      <p className="mx-auto mt-3 max-w-xl text-center text-[12.5px] italic text-[var(--muted-fg)]">
+      <p className="mx-auto mt-3 max-w-xl text-center text-[13px] italic text-[var(--muted-fg)] md:text-[12.5px]">
         Every Kyn starts with OKRs set at onboarding — its agent proposes, a
         human confirms.
       </p>
