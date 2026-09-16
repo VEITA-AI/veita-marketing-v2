@@ -623,6 +623,96 @@
   }
 }
 
+/* ---- Compounding sequence ----
+   Ambient motion that runs regardless of scroll, so the system is alive even
+   when the reader is still. Scroll drives the narrative on top of this. */
+.cs-root .cs-ring {
+  fill: none;
+  stroke: rgba(143, 192, 234, 0.34);
+  stroke-width: 1.4px;
+  stroke-dasharray: 3 8;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: 50%;
+  transition: stroke var(--dur-base) var(--ease-out-quart);
+  animation: cs-spin 30s linear infinite;
+}
+.cs-root .cs-ring-core {
+  stroke: rgba(58, 172, 204, 0.62);
+  stroke-width: 1.8px;
+  stroke-dasharray: 4 10;
+  animation-duration: 44s;
+  animation-direction: reverse;
+}
+@keyframes cs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The whole assembly drifts continuously; scroll adds its own turn on top. */
+.cs-root .cs-orbit {
+  animation: cs-drift 140s linear infinite;
+  transform-box: fill-box;
+}
+@keyframes cs-drift {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Node type rides the orbit, so cancel the drift to keep labels upright.
+   Uses `rotate` rather than `transform` so it composes with the scroll turn. */
+.cs-root .cs-counter {
+  animation: cs-counter 140s linear infinite;
+}
+@keyframes cs-counter {
+  to {
+    rotate: -360deg;
+  }
+}
+
+.cs-root .cs-breath {
+  transform-box: fill-box;
+  transform-origin: 50%;
+  animation: cs-breath 6s var(--ease-out-quart) infinite;
+}
+@keyframes cs-breath {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+.cs-root .cs-label {
+  font-family: "Bricolage Grotesque", sans-serif;
+  fill: var(--foreground);
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.cs-root .cs-sub {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  fill: var(--muted-fg);
+  text-anchor: middle;
+  dominant-baseline: central;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-root .cs-ring,
+  .cs-root .cs-orbit,
+  .cs-root .cs-counter,
+  .cs-root .cs-breath {
+    animation: none;
+  }
+}
+
 /* ---- Kyndred loop diagram ----
    The signature graphic. Depth comes from layered glow and gradient strokes;
    the idle state breathes so the system reads as running, not drawn. */

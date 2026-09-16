@@ -3,20 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * The compounding loop, told as a scroll sequence.
+ * The compounding loop, told as a continuous scroll sequence.
  *
- * A tall track with a sticky stage; scroll position drives five beats that
- * build the system up rather than presenting it finished:
+ * Two motion systems run at once, which is what keeps it from reading as a
+ * slideshow:
  *
- *   1. Kyndred alone
- *   2. Four Kyn appear, in different spaces
- *   3. Each connects to the shared layer
- *   4. Their operating signal travels inward
- *   5. What one Kyn learned comes back out as another's play
+ *   - Ambient. CSS and SMIL animations that never stop — the orbit turns, the
+ *     core breathes, signal keeps moving down every connected spoke. These are
+ *     independent of scroll position, so the system is always alive even when
+ *     the reader is still.
+ *   - Narrative. Scroll drives a camera (an interpolated viewBox), the build-up
+ *     of each element, and the metadata transfer at the end. Beat windows
+ *     deliberately overlap so nothing snaps between states.
  *
- * Driven by a scroll handler rather than `animation-timeline`, because this
- * needs to scrub deterministically in every browser — Firefox still gates
- * scroll-driven animations behind a flag.
+ * Scroll-driven rather than `animation-timeline` because it must scrub
+ * deterministically everywhere; Firefox still gates that behind a flag.
  */
 
 const CX = 500;
@@ -33,7 +34,7 @@ const KYNS: Kyn[] = [
     name: "Kyn 2",
     domain: "Finance",
     okr: "AR >60d under 10%",
-    okrAfter: "Play applied · deposit terms",
+    okrAfter: "+ play · call after 2 ignored emails",
   },
   { name: "Kyn 3", domain: "R&D", okr: "Spec-to-merge −30%" },
   { name: "Kyn 4", domain: "Marketing", okr: "Qualified leads +40%" },
@@ -42,28 +43,28 @@ const KYNS: Kyn[] = [
 const BEATS = [
   {
     label: "the shared layer",
-    title: "It starts with one model.",
-    body: "Kyndred is trained on the operational record of the companies Veita builds — decisions, outcomes, financials. Not scraped text.",
+    title: "One model, trained on what actually happened.",
+    body: "Kyndred learns from the operating record of every company Veita builds — the decisions, the outcomes, the financials. Not scraped text about business. Business.",
   },
   {
-    label: "the companies",
-    title: "Four companies, four different spaces.",
-    body: "Sales, finance, R&D, marketing. Each Kyn runs its own business with its own targets, set at onboarding — its agent proposes, a human confirms.",
+    label: "four companies",
+    title: "Four companies. Four different problems.",
+    body: "Sales chasing a funnel. Finance chasing invoices. R&D chasing cycle time. Marketing chasing qualified leads. Each with its own OKRs, set at onboarding.",
   },
   {
     label: "one architecture",
-    title: "Every Kyn runs on the same layer.",
-    body: "That is what makes it a Kyn rather than a portfolio company. The operating layer is common, and the learning flows both ways.",
+    title: "They all run on the same layer.",
+    body: "This is what makes them Kyn rather than a portfolio. One operating layer, one shared model, every company wired into both from day one.",
   },
   {
-    label: "signal inward",
-    title: "Operating reality travels in.",
-    body: "Every decision a Kyn makes and every outcome it gets is read back into the shared record. Four companies of real evidence, not one.",
+    label: "the metadata",
+    title: "Every action leaves metadata.",
+    body: "Not the customer's data — the shape of the work. Which cadence closed the invoice. How many touches it took. What the agent tried before it worked. That metadata is the training signal.",
   },
   {
-    label: "capability back out",
-    title: "What one Kyn learns, the next one starts with.",
-    body: "Sales finds a collections cadence that gets invoices paid faster. Kyndred carries it across — and Finance starts its quarter with the play already in hand.",
+    label: "the transfer",
+    title: "Finance starts the quarter with Sales' answer.",
+    body: "Sales learns that a call after two ignored emails gets invoices paid. Kyndred abstracts the pattern out of the metadata and hands it to Finance as a play — before Finance ever hits the problem.",
   },
 ];
 
@@ -72,10 +73,35 @@ const ease = (t: number) => {
   const c = Math.min(Math.max(t, 0), 1);
   return c * c * (3 - 2 * c);
 };
-
-/** Maps global progress onto a [from,to] window, eased. */
 const span = (p: number, from: number, to: number) =>
   ease((p - from) / (to - from));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/**
+ * Camera keyframes. Starts tight on Kyndred, pulls back as the system builds,
+ * then pushes in on the Sales → Finance axis for the transfer.
+ */
+const CAMERA: { at: number; box: [number, number, number, number] }[] = [
+  { at: 0.0, box: [352, 212, 296, 296] },
+  { at: 0.3, box: [10, 10, 980, 700] },
+  { at: 0.62, box: [60, 44, 880, 632] },
+  { at: 0.86, box: [190, 40, 700, 645] },
+  { at: 1.0, box: [120, 25, 800, 684] },
+];
+
+function camera(p: number): string {
+  let a = CAMERA[0];
+  let b = CAMERA[CAMERA.length - 1];
+  for (let i = 0; i < CAMERA.length - 1; i++) {
+    if (p >= CAMERA[i].at && p <= CAMERA[i + 1].at) {
+      a = CAMERA[i];
+      b = CAMERA[i + 1];
+      break;
+    }
+  }
+  const t = ease((p - a.at) / (b.at - a.at || 1));
+  return a.box.map((v, i) => lerp(v, b.box[i], t).toFixed(1)).join(" ");
+}
 
 export function CompoundingSequence() {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -88,7 +114,6 @@ export function CompoundingSequence() {
       setP(1);
       return;
     }
-
     let frame = 0;
     const measure = () => {
       frame = 0;
@@ -102,7 +127,6 @@ export function CompoundingSequence() {
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(measure);
     };
-
     measure();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
@@ -129,97 +153,107 @@ export function CompoundingSequence() {
     };
   });
 
-  // Beat windows.
-  const core = span(p, 0.0, 0.055);
-  const kynIn = span(p, 0.14, 0.32);
-  const linkIn = span(p, 0.34, 0.5);
-  const inward = span(p, 0.52, 0.68);
-  const outward = span(p, 0.74, 0.92);
+  // Overlapping windows — each begins before the last has settled.
+  const core = span(p, 0.0, 0.06);
+  const kynIn = span(p, 0.1, 0.34);
+  const linkIn = span(p, 0.28, 0.5);
+  const meta = span(p, 0.46, 0.7);
+  const transfer = span(p, 0.7, 0.96);
 
-  const beat =
-    p < 0.14 ? 0 : p < 0.34 ? 1 : p < 0.52 ? 2 : p < 0.72 ? 3 : 4;
+  const beat = p < 0.13 ? 0 : p < 0.31 ? 1 : p < 0.49 ? 2 : p < 0.7 ? 3 : 4;
+  // Progress *within* the active beat, used to keep the narration moving.
+  const bounds = [0, 0.13, 0.31, 0.49, 0.7, 1];
+  const within =
+    (p - bounds[beat]) / (bounds[beat + 1] - bounds[beat] || 1);
 
-  // Beat 5 routes Sales' learning through the core and out to Finance.
   const source = nodes[0];
   const target = nodes[1];
-  const legIn = Math.min(outward / 0.45, 1);
-  const legOut = Math.max((outward - 0.5) / 0.5, 0);
-
+  const legIn = Math.min(transfer / 0.44, 1);
+  const legOut = Math.max((transfer - 0.5) / 0.5, 0);
   const packetIn = {
-    x: source.x + (CX - source.x) * ease(legIn),
-    y: source.y + (CY - source.y) * ease(legIn),
+    x: lerp(source.x, CX, ease(legIn)),
+    y: lerp(source.y, CY, ease(legIn)),
   };
   const packetOut = {
-    x: CX + (target.x - CX) * ease(legOut),
-    y: CY + (target.y - CY) * ease(legOut),
+    x: lerp(CX, target.x, ease(legOut)),
+    y: lerp(CY, target.y, ease(legOut)),
   };
+  // The whole assembly turns slowly with scroll, on top of the ambient spin.
+  const turn = lerp(-8, 6, p);
 
   return (
-    <div ref={trackRef} className="relative h-[320vh] md:h-[440vh]">
+    <div ref={trackRef} className="relative h-[340vh] md:h-[460vh]">
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
-          <div className="grid items-center gap-10 lg:grid-cols-12">
+          <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
             {/* Narration */}
             <div className="lg:col-span-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {BEATS.map((_, i) => (
                   <span
                     key={i}
-                    className="h-[2px] flex-1 rounded-full transition-all"
-                    style={{
-                      background:
-                        i <= beat ? "var(--ember)" : "var(--rule-soft)",
-                      opacity: i <= beat ? 1 : 0.6,
-                      transition:
-                        "background var(--dur-base) var(--ease-out-quart)",
-                    }}
-                  />
+                    className="relative h-[2px] flex-1 overflow-hidden rounded-full"
+                    style={{ background: "var(--rule-soft)" }}
+                  >
+                    <span
+                      className="absolute inset-y-0 left-0"
+                      style={{
+                        width:
+                          i < beat ? "100%" : i === beat ? `${within * 100}%` : "0%",
+                        background: "var(--ember)",
+                      }}
+                    />
+                  </span>
                 ))}
               </div>
 
-              <div className="relative mt-8 min-h-[280px]">
-                {BEATS.map((b, i) => (
-                  <div
-                    key={b.title}
-                    className="absolute inset-0"
-                    style={{
-                      opacity: i === beat ? 1 : 0,
-                      transform:
-                        i === beat ? "none" : "translateY(10px)",
-                      pointerEvents: i === beat ? undefined : "none",
-                      transition:
-                        "opacity var(--dur-medium) var(--ease-out-quart), transform var(--dur-medium) var(--ease-out-quart)",
-                    }}
-                  >
+              <div className="relative mt-8 min-h-[300px] md:min-h-[320px]">
+                {BEATS.map((b, i) => {
+                  const active = i === beat;
+                  return (
                     <div
-                      className="font-mono text-[11px] uppercase"
+                      key={b.title}
+                      className="absolute inset-0"
                       style={{
-                        letterSpacing: "0.22em",
-                        color: "var(--ember)",
+                        opacity: active ? 1 : 0,
+                        // Copy keeps drifting through the beat, so the block is
+                        // never completely static between transitions.
+                        transform: active
+                          ? `translateY(${(1 - within) * 14 - 7}px)`
+                          : "translateY(18px)",
+                        filter: active ? "none" : "blur(4px)",
+                        pointerEvents: active ? undefined : "none",
+                        transition:
+                          "opacity var(--dur-medium) var(--ease-out-quart), filter var(--dur-medium) var(--ease-out-quart)",
                       }}
                     >
-                      <span style={{ opacity: 0.55 }}>§ </span>
-                      {b.label}
+                      <div
+                        className="font-mono text-[11px] uppercase"
+                        style={{ letterSpacing: "0.22em", color: "var(--ember)" }}
+                      >
+                        <span style={{ opacity: 0.55 }}>§ </span>
+                        {b.label}
+                      </div>
+                      <h3
+                        className="mt-5 font-display"
+                        style={{
+                          fontWeight: 500,
+                          letterSpacing: "-0.035em",
+                          lineHeight: 1.1,
+                          fontSize: "clamp(1.55rem, 1rem + 1.4vw, 2.3rem)",
+                        }}
+                      >
+                        {b.title}
+                      </h3>
+                      <p
+                        className="mt-5 max-w-[44ch] text-[14.5px] leading-[1.6]"
+                        style={{ color: "var(--body-fg)" }}
+                      >
+                        {b.body}
+                      </p>
                     </div>
-                    <h3
-                      className="mt-5 font-display"
-                      style={{
-                        fontWeight: 500,
-                        letterSpacing: "-0.035em",
-                        lineHeight: 1.1,
-                        fontSize: "clamp(1.6rem, 1rem + 1.5vw, 2.4rem)",
-                      }}
-                    >
-                      {b.title}
-                    </h3>
-                    <p
-                      className="mt-5 max-w-[42ch] text-[14.5px] leading-[1.6]"
-                      style={{ color: "var(--body-fg)" }}
-                    >
-                      {b.body}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div
@@ -231,12 +265,12 @@ export function CompoundingSequence() {
             </div>
 
             {/* Stage */}
-            <div className="kl-root lg:col-span-8">
+            <div className="cs-root lg:col-span-8">
               <svg
-                viewBox="0 0 1000 720"
+                viewBox={camera(p)}
                 className="block h-full w-full"
                 role="img"
-                aria-label="A scroll sequence: Kyndred, then four Kyn, then each connecting to the shared layer, their operating signal travelling inward, and shared capability travelling back out."
+                aria-label="A scroll sequence: Kyndred alone, then four Kyn appearing, connecting to the shared layer, their operating metadata travelling inward, and a play travelling back out to another Kyn."
               >
                 <defs>
                   <radialGradient
@@ -246,7 +280,7 @@ export function CompoundingSequence() {
                     cy={CY}
                     r={ORBIT}
                   >
-                    <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.85" />
+                    <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.9" />
                     <stop offset="100%" stopColor="#367bc0" stopOpacity="0.3" />
                   </radialGradient>
                   <radialGradient id="cs-disc" cx="36%" cy="28%" r="84%">
@@ -258,167 +292,185 @@ export function CompoundingSequence() {
                     <stop offset="100%" stopColor="#0a1730" />
                   </radialGradient>
                   <radialGradient id="cs-glow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#3aaccc" stopOpacity="0.45" />
-                    <stop offset="55%" stopColor="#367bc0" stopOpacity="0.14" />
+                    <stop offset="0%" stopColor="#3aaccc" stopOpacity="0.5" />
+                    <stop offset="55%" stopColor="#367bc0" stopOpacity="0.15" />
                     <stop offset="100%" stopColor="#367bc0" stopOpacity="0" />
                   </radialGradient>
                 </defs>
 
-                {/* Core glow, intensifying as signal arrives */}
                 <circle
                   cx={CX}
                   cy={CY}
-                  r={CORE_R * 2.5}
+                  r={CORE_R * 2.6}
                   fill="url(#cs-glow)"
-                  opacity={0.35 + core * 0.3 + inward * 0.45}
+                  className="cs-breath"
+                  opacity={0.4 + meta * 0.35 + transfer * 0.25}
                 />
 
-                {/* Spokes draw outward from the core */}
-                {nodes.map((n) => {
-                  const len = Math.hypot(n.toX - n.fromX, n.toY - n.fromY);
-                  return (
-                    <line
-                      key={`l-${n.i}`}
-                      x1={n.fromX}
-                      y1={n.fromY}
-                      x2={n.toX}
-                      y2={n.toY}
-                      stroke="url(#cs-spoke)"
-                      strokeWidth={1.5}
-                      strokeDasharray={len}
-                      strokeDashoffset={len * (1 - linkIn)}
-                      opacity={linkIn}
-                    />
-                  );
-                })}
+                {/* Everything orbital turns together, slowly and always. */}
+                <g
+                  className="cs-orbit"
+                  style={{ transform: `rotate(${turn}deg)`, transformOrigin: `${CX}px ${CY}px` }}
+                >
+                  {nodes.map((n) => {
+                    const len = Math.hypot(n.toX - n.fromX, n.toY - n.fromY);
+                    const on = ease(
+                      Math.min(Math.max(linkIn * 1.5 - n.i * 0.12, 0), 1)
+                    );
+                    return (
+                      <g key={`s-${n.i}`}>
+                        <line
+                          x1={n.fromX}
+                          y1={n.fromY}
+                          x2={n.toX}
+                          y2={n.toY}
+                          stroke="url(#cs-spoke)"
+                          strokeWidth={1.5}
+                          strokeDasharray={len}
+                          strokeDashoffset={len * (1 - on)}
+                          opacity={on}
+                        />
+                        {/* Ambient traffic — never stops once the spoke exists. */}
+                        {on > 0.9 && (
+                          <>
+                            <circle r={4} fill="var(--success)" opacity={0.5 + meta * 0.5}>
+                              <animateMotion
+                                dur="3.2s"
+                                repeatCount="indefinite"
+                                begin={`${n.i * 0.4}s`}
+                                path={`M ${n.toX} ${n.toY} L ${n.fromX} ${n.fromY}`}
+                              />
+                            </circle>
+                            <circle r={3} fill="var(--sky)" opacity={0.35 + transfer * 0.5}>
+                              <animateMotion
+                                dur="3.2s"
+                                repeatCount="indefinite"
+                                begin={`${1.6 + n.i * 0.4}s`}
+                                path={`M ${n.fromX} ${n.fromY} L ${n.toX} ${n.toY}`}
+                              />
+                            </circle>
+                          </>
+                        )}
+                      </g>
+                    );
+                  })}
 
-                {/* Beat 4 — every Kyn's signal travels inward */}
-                {nodes.map((n) => {
-                  const t = ease(
-                    Math.min(Math.max(inward * 1.6 - n.i * 0.12, 0), 1)
-                  );
-                  return (
-                    <circle
-                      key={`in-${n.i}`}
-                      r={5}
-                      cx={n.toX + (n.fromX - n.toX) * t}
-                      cy={n.toY + (n.fromY - n.toY) * t}
-                      fill="var(--success)"
-                      opacity={inward > 0.02 && outward < 0.05 ? 1 : 0}
-                      style={{ filter: "drop-shadow(0 0 6px rgba(58,172,204,0.9))" }}
-                    />
-                  );
-                })}
+                  {nodes.map((n) => {
+                    const appear = ease(
+                      Math.min(Math.max(kynIn * 1.5 - n.i * 0.16, 0), 1)
+                    );
+                    const isSource = transfer > 0.02 && n.i === 0;
+                    const isTarget = legOut > 0.2 && n.i === 1;
+                    return (
+                      <g
+                        key={`n-${n.i}`}
+                        opacity={appear}
+                        style={{
+                          transform: `translate(${(1 - appear) * (CX - n.x) * 0.3}px, ${(1 - appear) * (CY - n.y) * 0.3}px) scale(${0.8 + appear * 0.2})`,
+                          transformOrigin: `${n.x}px ${n.y}px`,
+                        }}
+                      >
+                        <circle
+                          cx={n.x}
+                          cy={n.y}
+                          r={NODE_R + 7}
+                          className="cs-ring"
+                          style={{
+                            stroke: isSource || isTarget ? "var(--sky)" : undefined,
+                          }}
+                        />
+                        <circle
+                          cx={n.x}
+                          cy={n.y}
+                          r={NODE_R}
+                          fill="url(#cs-disc)"
+                          stroke={
+                            isTarget
+                              ? "rgba(58,172,204,0.85)"
+                              : "rgba(143,192,234,0.24)"
+                          }
+                        />
+                        {/* Counter-rotate the label so type stays upright. */}
+                        <g
+                          className="cs-counter"
+                          style={{
+                            transform: `rotate(${-turn}deg)`,
+                            transformOrigin: `${n.x}px ${n.y}px`,
+                          }}
+                        >
+                          <text x={n.x} y={n.y - 5} className="cs-label" fontSize={15}>
+                            {n.name}
+                          </text>
+                          <text x={n.x} y={n.y + 14} className="cs-sub" fontSize={8.5}>
+                            {n.domain}
+                          </text>
+                          <text
+                            x={n.x}
+                            y={n.y + NODE_R + 24}
+                            className="cs-sub"
+                            fontSize={8.5}
+                            style={{
+                              fill: isTarget ? "var(--success)" : undefined,
+                              opacity: linkIn,
+                            }}
+                          >
+                            {isTarget && n.okrAfter ? n.okrAfter : n.okr}
+                          </text>
+                        </g>
+                      </g>
+                    );
+                  })}
+                </g>
 
-                {/* Beat 5 — one Kyn's learning routes out as another's play */}
-                {outward > 0.01 && (
+                {/* The transfer, with a trail so the packet reads as moving. */}
+                {transfer > 0.01 && (
                   <>
+                    <line
+                      x1={source.x}
+                      y1={source.y}
+                      x2={packetIn.x}
+                      y2={packetIn.y}
+                      stroke="var(--success)"
+                      strokeWidth={2}
+                      opacity={legIn < 1 ? 0.5 : 0}
+                    />
                     <circle
-                      r={6}
+                      r={7}
                       cx={packetIn.x}
                       cy={packetIn.y}
                       fill="var(--success)"
                       opacity={legIn < 1 ? 1 : 0}
-                      style={{ filter: "drop-shadow(0 0 8px rgba(58,172,204,1))" }}
+                      style={{ filter: "drop-shadow(0 0 10px rgba(58,172,204,1))" }}
+                    />
+                    <line
+                      x1={CX}
+                      y1={CY}
+                      x2={packetOut.x}
+                      y2={packetOut.y}
+                      stroke="var(--sky)"
+                      strokeWidth={2}
+                      opacity={legOut > 0 && legOut < 1 ? 0.55 : 0}
                     />
                     <circle
-                      r={6}
+                      r={7}
                       cx={packetOut.x}
                       cy={packetOut.y}
                       fill="var(--sky)"
                       opacity={legOut > 0 ? 1 : 0}
-                      style={{ filter: "drop-shadow(0 0 8px rgba(143,192,234,1))" }}
+                      style={{ filter: "drop-shadow(0 0 10px rgba(143,192,234,1))" }}
                     />
                   </>
                 )}
-
-                {/* Kyn nodes */}
-                {nodes.map((n) => {
-                  const appear = ease(
-                    Math.min(Math.max(kynIn * 1.5 - n.i * 0.14, 0), 1)
-                  );
-                  const isSource = outward > 0.01 && n.i === 0;
-                  const isTarget = legOut > 0.15 && n.i === 1;
-                  return (
-                    <g
-                      key={`n-${n.i}`}
-                      opacity={appear}
-                      style={{
-                        transform: `translate(${(1 - appear) * (CX - n.x) * 0.25}px, ${(1 - appear) * (CY - n.y) * 0.25}px) scale(${0.85 + appear * 0.15})`,
-                        transformOrigin: `${n.x}px ${n.y}px`,
-                      }}
-                    >
-                      <circle
-                        cx={n.x}
-                        cy={n.y}
-                        r={NODE_R + 7}
-                        className="kl-ring"
-                        style={{
-                          stroke:
-                            isSource || isTarget
-                              ? "var(--sky)"
-                              : undefined,
-                        }}
-                      />
-                      <circle
-                        cx={n.x}
-                        cy={n.y}
-                        r={NODE_R}
-                        fill="url(#cs-disc)"
-                        stroke={
-                          isTarget
-                            ? "rgba(58,172,204,0.8)"
-                            : "rgba(143,192,234,0.24)"
-                        }
-                      />
-                      <text
-                        x={n.x}
-                        y={n.y - 5}
-                        className="kl-label"
-                        fontSize={15}
-                      >
-                        {n.name}
-                      </text>
-                      <text
-                        x={n.x}
-                        y={n.y + 14}
-                        className="kl-sub"
-                        fontSize={8.5}
-                      >
-                        {n.domain}
-                      </text>
-
-                      {/* OKR chip — the target's updates when the play lands */}
-                      <text
-                        x={n.x}
-                        y={n.y + NODE_R + 24}
-                        className="kl-sub"
-                        fontSize={8.5}
-                        style={{
-                          fill: isTarget ? "var(--success)" : undefined,
-                          opacity: linkIn,
-                        }}
-                      >
-                        {isTarget && n.okrAfter ? n.okrAfter : n.okr}
-                      </text>
-                    </g>
-                  );
-                })}
 
                 {/* Kyndred */}
                 <g
                   opacity={core}
                   style={{
-                    transform: `scale(${0.9 + core * 0.1})`,
+                    transform: `scale(${0.88 + core * 0.12})`,
                     transformOrigin: `${CX}px ${CY}px`,
                   }}
                 >
-                  <circle
-                    cx={CX}
-                    cy={CY}
-                    r={CORE_R + 10}
-                    className="kl-ring kl-ring-core"
-                  />
+                  <circle cx={CX} cy={CY} r={CORE_R + 10} className="cs-ring cs-ring-core" />
                   <circle
                     cx={CX}
                     cy={CY}
@@ -426,10 +478,10 @@ export function CompoundingSequence() {
                     fill="url(#cs-core)"
                     stroke="rgba(58,172,204,0.45)"
                   />
-                  <text x={CX} y={CY - 6} className="kl-label" fontSize={23}>
+                  <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
                     Kyndred
                   </text>
-                  <text x={CX} y={CY + 19} className="kl-sub" fontSize={9.5}>
+                  <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
                     shared intelligence
                   </text>
                 </g>
