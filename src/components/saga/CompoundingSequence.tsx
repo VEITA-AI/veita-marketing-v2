@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from "react";
 
 const CX = 500;
 const CY = 360;
-const ORBIT = 232;
+const ORBIT = 272;
 const CORE_R = 86;
 const NODE_R = 52;
 
@@ -85,8 +85,8 @@ const CAMERA: { at: number; box: [number, number, number, number] }[] = [
   { at: 0.0, box: [352, 212, 296, 296] },
   { at: 0.3, box: [10, 10, 980, 700] },
   { at: 0.62, box: [60, 44, 880, 632] },
-  { at: 0.86, box: [190, 40, 700, 645] },
-  { at: 1.0, box: [120, 25, 800, 684] },
+  { at: 0.86, box: [160, 20, 760, 690] },
+  { at: 1.0, box: [110, 8, 840, 706] },
 ];
 
 function camera(p: number): string {
@@ -281,7 +281,7 @@ export function CompoundingSequence() {
                     r={ORBIT}
                   >
                     <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.9" />
-                    <stop offset="100%" stopColor="#367bc0" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#5f9fd6" stopOpacity="0.6" />
                   </radialGradient>
                   <radialGradient id="cs-disc" cx="36%" cy="28%" r="84%">
                     <stop offset="0%" stopColor="#1e3a5c" />
@@ -325,7 +325,7 @@ export function CompoundingSequence() {
                           x2={n.toX}
                           y2={n.toY}
                           stroke="url(#cs-spoke)"
-                          strokeWidth={1.5}
+                          strokeWidth={1.75}
                           strokeDasharray={len}
                           strokeDashoffset={len * (1 - on)}
                           opacity={on}

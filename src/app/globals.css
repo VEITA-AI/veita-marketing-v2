@@ -653,7 +653,8 @@
 /* The whole assembly drifts continuously; scroll adds its own turn on top. */
 .cs-root .cs-orbit {
   animation: cs-drift 140s linear infinite;
-  transform-box: fill-box;
+  /* No transform-box override: the inline transform-origin is in user-space
+     coordinates, and fill-box would resolve it against the group's own bbox. */
 }
 @keyframes cs-drift {
   to {
