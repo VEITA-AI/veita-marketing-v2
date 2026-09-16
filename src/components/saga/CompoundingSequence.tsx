@@ -22,9 +22,18 @@ import { useEffect, useRef, useState } from "react";
 
 const CX = 500;
 const CY = 360;
-const ORBIT = 272;
+const ORBIT = 300;
 const CORE_R = 86;
 const NODE_R = 52;
+
+/**
+ * The orbit is a circle seen at an angle, not a flat ring. TILT squashes it
+ * vertically; depth is taken from the sine of the orbital angle, and used for
+ * scale, opacity and draw order. That perspective — plus occlusion behind the
+ * core — is what gives the scene volume without a 3D renderer.
+ */
+const TILT = 0.56;
+const DEPTH_SCALE = 0.26;
 
 type Kyn = { name: string; domain: string; okr: string; okrAfter?: string };
 
@@ -85,8 +94,8 @@ const CAMERA: { at: number; box: [number, number, number, number] }[] = [
   { at: 0.0, box: [352, 212, 296, 296] },
   { at: 0.3, box: [10, 10, 980, 700] },
   { at: 0.62, box: [60, 44, 880, 632] },
-  { at: 0.86, box: [160, 20, 760, 690] },
-  { at: 1.0, box: [110, 8, 840, 706] },
+  { at: 0.86, box: [80, 20, 850, 690] },
+  { at: 1.0, box: [60, 8, 890, 706] },
 ];
 
 function camera(p: number): string {
@@ -137,21 +146,41 @@ export function CompoundingSequence() {
     };
   }, []);
 
+  // Scroll turns the orbit slowly, so nodes swing through depth as you read.
+  const spin = lerp(-26, 34, p);
+
   const nodes = KYNS.map((k, i) => {
-    const angle = ((-90 + i * 90) * Math.PI) / 180;
+    const angle = ((-110 + i * 90 + spin) * Math.PI) / 180;
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
+    const x = CX + ORBIT * cos;
+    const y = CY + ORBIT * sin * TILT;
+    // +1 nearest the viewer, -1 furthest behind the core.
+    const depth = sin;
+    const scale = 1 + depth * DEPTH_SCALE;
+    const r = NODE_R * scale;
+    // Spoke endpoints follow the projected positions, not the circle.
+    const dx = x - CX;
+    const dy = y - CY;
+    const len = Math.hypot(dx, dy) || 1;
     return {
       ...k,
       i,
-      x: CX + ORBIT * cos,
-      y: CY + ORBIT * sin,
-      fromX: CX + (CORE_R + 10) * cos,
-      fromY: CY + (CORE_R + 10) * sin,
-      toX: CX + ORBIT * cos - (NODE_R + 10) * cos,
-      toY: CY + ORBIT * sin - (NODE_R + 10) * sin,
+      x,
+      y,
+      depth,
+      scale,
+      r,
+      fromX: CX + (dx / len) * (CORE_R + 8),
+      fromY: CY + (dy / len) * (CORE_R + 8),
+      toX: x - (dx / len) * (r + 8),
+      toY: y - (dy / len) * (r + 8),
     };
   });
+
+  // Far side draws before the core, near side after — that is the occlusion.
+  const behind = nodes.filter((n) => n.depth < 0).sort((a, b) => a.depth - b.depth);
+  const inFront = nodes.filter((n) => n.depth >= 0).sort((a, b) => a.depth - b.depth);
 
   // Overlapping windows — each begins before the last has settled.
   const core = span(p, 0.0, 0.06);
@@ -180,6 +209,96 @@ export function CompoundingSequence() {
   };
   // The whole assembly turns slowly with scroll, on top of the ambient spin.
   const turn = lerp(-8, 6, p);
+
+
+  type Projected = (typeof nodes)[number];
+
+  /** Depth fades and thins the far side; the near side reads solid. */
+  const depthAlpha = (d: number) => 0.62 + ((d + 1) / 2) * 0.38;
+
+  const renderSpoke = (n: Projected) => {
+    const len = Math.hypot(n.toX - n.fromX, n.toY - n.fromY);
+    const on = ease(Math.min(Math.max(linkIn * 1.5 - n.i * 0.1, 0), 1));
+    if (on <= 0.001) return null;
+    return (
+      <g key={`s-${n.i}`} opacity={on * depthAlpha(n.depth)}>
+        <line
+          x1={n.fromX}
+          y1={n.fromY}
+          x2={n.toX}
+          y2={n.toY}
+          stroke="url(#cs-spoke)"
+          strokeWidth={1.4 + (n.depth + 1) * 0.45}
+          strokeDasharray={len}
+          strokeDashoffset={len * (1 - on)}
+        />
+        {on > 0.9 && (
+          <>
+            <circle r={3.2 + (n.depth + 1) * 0.9} fill="var(--success)" opacity={0.55 + meta * 0.45}>
+              <animateMotion
+                dur="3.2s"
+                repeatCount="indefinite"
+                begin={`${n.i * 0.4}s`}
+                path={`M ${n.toX} ${n.toY} L ${n.fromX} ${n.fromY}`}
+              />
+            </circle>
+            <circle r={2.6 + (n.depth + 1) * 0.7} fill="var(--sky)" opacity={0.4 + transfer * 0.5}>
+              <animateMotion
+                dur="3.2s"
+                repeatCount="indefinite"
+                begin={`${1.6 + n.i * 0.4}s`}
+                path={`M ${n.fromX} ${n.fromY} L ${n.toX} ${n.toY}`}
+              />
+            </circle>
+          </>
+        )}
+      </g>
+    );
+  };
+
+  const renderNode = (n: Projected) => {
+    const appear = ease(Math.min(Math.max(kynIn * 1.5 - n.i * 0.16, 0), 1));
+    if (appear <= 0.001) return null;
+    const isSource = transfer > 0.02 && n.i === 0;
+    const isTarget = legOut > 0.2 && n.i === 1;
+    return (
+      <g key={`n-${n.i}`} opacity={appear * depthAlpha(n.depth)}>
+        <circle cx={n.x} cy={n.y} r={n.r + 7} className="cs-ring"
+          style={{ stroke: isSource || isTarget ? "var(--sky)" : undefined }} />
+        <circle
+          cx={n.x}
+          cy={n.y}
+          r={n.r}
+          fill="url(#cs-disc)"
+          stroke={isTarget ? "rgba(58,172,204,0.85)" : "rgba(143,192,234,0.24)"}
+        />
+        {/* Specular highlight — the cue that reads as a sphere, not a disc. */}
+        <ellipse
+          cx={n.x - n.r * 0.3}
+          cy={n.y - n.r * 0.4}
+          rx={n.r * 0.44}
+          ry={n.r * 0.28}
+          fill="url(#cs-spec)"
+          opacity={0.5}
+        />
+        <text x={n.x} y={n.y - 4} className="cs-label" fontSize={14 * n.scale}>
+          {n.name}
+        </text>
+        <text x={n.x} y={n.y + 13 * n.scale} className="cs-sub" fontSize={8 * n.scale}>
+          {n.domain}
+        </text>
+        <text
+          x={n.x}
+          y={n.y + n.r + 22}
+          className="cs-sub"
+          fontSize={8.5}
+          style={{ fill: isTarget ? "var(--success)" : undefined, opacity: linkIn }}
+        >
+          {isTarget && n.okrAfter ? n.okrAfter : n.okr}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <div ref={trackRef} className="relative h-[340vh] md:h-[460vh]">
@@ -291,6 +410,10 @@ export function CompoundingSequence() {
                     <stop offset="0%" stopColor="#17304f" />
                     <stop offset="100%" stopColor="#0a1730" />
                   </radialGradient>
+                  <radialGradient id="cs-spec" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#bcd8f2" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#bcd8f2" stopOpacity="0" />
+                  </radialGradient>
                   <radialGradient id="cs-glow" cx="50%" cy="50%" r="50%">
                     <stop offset="0%" stopColor="#3aaccc" stopOpacity="0.5" />
                     <stop offset="55%" stopColor="#367bc0" stopOpacity="0.15" />
@@ -307,120 +430,63 @@ export function CompoundingSequence() {
                   opacity={0.4 + meta * 0.35 + transfer * 0.25}
                 />
 
-                {/* Everything orbital turns together, slowly and always. */}
-                <g
-                  className="cs-orbit"
-                  style={{ transform: `rotate(${turn}deg)`, transformOrigin: `${CX}px ${CY}px` }}
-                >
-                  {nodes.map((n) => {
-                    const len = Math.hypot(n.toX - n.fromX, n.toY - n.fromY);
-                    const on = ease(
-                      Math.min(Math.max(linkIn * 1.5 - n.i * 0.12, 0), 1)
-                    );
-                    return (
-                      <g key={`s-${n.i}`}>
-                        <line
-                          x1={n.fromX}
-                          y1={n.fromY}
-                          x2={n.toX}
-                          y2={n.toY}
-                          stroke="url(#cs-spoke)"
-                          strokeWidth={1.75}
-                          strokeDasharray={len}
-                          strokeDashoffset={len * (1 - on)}
-                          opacity={on}
-                        />
-                        {/* Ambient traffic — never stops once the spoke exists. */}
-                        {on > 0.9 && (
-                          <>
-                            <circle r={4} fill="var(--success)" opacity={0.5 + meta * 0.5}>
-                              <animateMotion
-                                dur="3.2s"
-                                repeatCount="indefinite"
-                                begin={`${n.i * 0.4}s`}
-                                path={`M ${n.toX} ${n.toY} L ${n.fromX} ${n.fromY}`}
-                              />
-                            </circle>
-                            <circle r={3} fill="var(--sky)" opacity={0.35 + transfer * 0.5}>
-                              <animateMotion
-                                dur="3.2s"
-                                repeatCount="indefinite"
-                                begin={`${1.6 + n.i * 0.4}s`}
-                                path={`M ${n.fromX} ${n.fromY} L ${n.toX} ${n.toY}`}
-                              />
-                            </circle>
-                          </>
-                        )}
-                      </g>
-                    );
-                  })}
+                {/* The orbital plane, seen at an angle. */}
+                <ellipse
+                  cx={CX}
+                  cy={CY}
+                  rx={ORBIT}
+                  ry={ORBIT * TILT}
+                  fill="none"
+                  stroke="rgba(143,192,234,0.14)"
+                  strokeWidth={1}
+                  strokeDasharray="2 10"
+                  opacity={kynIn * 0.9}
+                />
 
-                  {nodes.map((n) => {
-                    const appear = ease(
-                      Math.min(Math.max(kynIn * 1.5 - n.i * 0.16, 0), 1)
-                    );
-                    const isSource = transfer > 0.02 && n.i === 0;
-                    const isTarget = legOut > 0.2 && n.i === 1;
-                    return (
-                      <g
-                        key={`n-${n.i}`}
-                        opacity={appear}
-                        style={{
-                          transform: `translate(${(1 - appear) * (CX - n.x) * 0.3}px, ${(1 - appear) * (CY - n.y) * 0.3}px) scale(${0.8 + appear * 0.2})`,
-                          transformOrigin: `${n.x}px ${n.y}px`,
-                        }}
-                      >
-                        <circle
-                          cx={n.x}
-                          cy={n.y}
-                          r={NODE_R + 7}
-                          className="cs-ring"
-                          style={{
-                            stroke: isSource || isTarget ? "var(--sky)" : undefined,
-                          }}
-                        />
-                        <circle
-                          cx={n.x}
-                          cy={n.y}
-                          r={NODE_R}
-                          fill="url(#cs-disc)"
-                          stroke={
-                            isTarget
-                              ? "rgba(58,172,204,0.85)"
-                              : "rgba(143,192,234,0.24)"
-                          }
-                        />
-                        {/* Counter-rotate the label so type stays upright. */}
-                        <g
-                          className="cs-counter"
-                          style={{
-                            transform: `rotate(${-turn}deg)`,
-                            transformOrigin: `${n.x}px ${n.y}px`,
-                          }}
-                        >
-                          <text x={n.x} y={n.y - 5} className="cs-label" fontSize={15}>
-                            {n.name}
-                          </text>
-                          <text x={n.x} y={n.y + 14} className="cs-sub" fontSize={8.5}>
-                            {n.domain}
-                          </text>
-                          <text
-                            x={n.x}
-                            y={n.y + NODE_R + 24}
-                            className="cs-sub"
-                            fontSize={8.5}
-                            style={{
-                              fill: isTarget ? "var(--success)" : undefined,
-                              opacity: linkIn,
-                            }}
-                          >
-                            {isTarget && n.okrAfter ? n.okrAfter : n.okr}
-                          </text>
-                        </g>
-                      </g>
-                    );
-                  })}
+                {/* Far side: drawn before the core, so the core occludes it. */}
+                {behind.map((n) => renderSpoke(n))}
+                {behind.map((n) => renderNode(n))}
+
+                {/* Kyndred */}
+                <g
+                  opacity={core}
+                  style={{
+                    transform: `scale(${0.88 + core * 0.12})`,
+                    transformOrigin: `${CX}px ${CY}px`,
+                  }}
+                >
+                  <circle
+                    cx={CX}
+                    cy={CY}
+                    r={CORE_R + 10}
+                    className="cs-ring cs-ring-core"
+                  />
+                  <circle
+                    cx={CX}
+                    cy={CY}
+                    r={CORE_R}
+                    fill="url(#cs-core)"
+                    stroke="rgba(58,172,204,0.45)"
+                  />
+                  <ellipse
+                    cx={CX - CORE_R * 0.3}
+                    cy={CY - CORE_R * 0.42}
+                    rx={CORE_R * 0.42}
+                    ry={CORE_R * 0.26}
+                    fill="url(#cs-spec)"
+                    opacity={0.55}
+                  />
+                  <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
+                    Kyndred
+                  </text>
+                  <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
+                    shared intelligence
+                  </text>
                 </g>
+
+                {/* Near side: drawn after the core, so it passes in front. */}
+                {inFront.map((n) => renderSpoke(n))}
+                {inFront.map((n) => renderNode(n))}
 
                 {/* The transfer, with a trail so the packet reads as moving. */}
                 {transfer > 0.01 && (
@@ -461,30 +527,6 @@ export function CompoundingSequence() {
                     />
                   </>
                 )}
-
-                {/* Kyndred */}
-                <g
-                  opacity={core}
-                  style={{
-                    transform: `scale(${0.88 + core * 0.12})`,
-                    transformOrigin: `${CX}px ${CY}px`,
-                  }}
-                >
-                  <circle cx={CX} cy={CY} r={CORE_R + 10} className="cs-ring cs-ring-core" />
-                  <circle
-                    cx={CX}
-                    cy={CY}
-                    r={CORE_R}
-                    fill="url(#cs-core)"
-                    stroke="rgba(58,172,204,0.45)"
-                  />
-                  <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
-                    Kyndred
-                  </text>
-                  <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
-                    shared intelligence
-                  </text>
-                </g>
               </svg>
 
               {still && (

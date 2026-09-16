@@ -650,28 +650,9 @@
   }
 }
 
-/* The whole assembly drifts continuously; scroll adds its own turn on top. */
-.cs-root .cs-orbit {
-  animation: cs-drift 140s linear infinite;
-  /* No transform-box override: the inline transform-origin is in user-space
-     coordinates, and fill-box would resolve it against the group's own bbox. */
-}
-@keyframes cs-drift {
-  to {
-    rotate: 360deg;
-  }
-}
-
-/* Node type rides the orbit, so cancel the drift to keep labels upright.
-   Uses `rotate` rather than `transform` so it composes with the scroll turn. */
-.cs-root .cs-counter {
-  animation: cs-counter 140s linear infinite;
-}
-@keyframes cs-counter {
-  to {
-    rotate: -360deg;
-  }
-}
+/* No continuous drift. Orbit position is driven by scroll only, so type is
+   never moving unless the reader is moving it. Ambient life comes from the
+   core, the rings and the signal instead. */
 
 .cs-root .cs-breath {
   transform-box: fill-box;
@@ -707,8 +688,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cs-root .cs-ring,
-  .cs-root .cs-orbit,
-  .cs-root .cs-counter,
   .cs-root .cs-breath {
     animation: none;
   }
