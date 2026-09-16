@@ -1,9 +1,27 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const MODEL = "claude-opus-5";
+/**
+ * The onboarding agent's backend.
+ *
+ * Runs on either Claude or Gemini. `CHAT_PROVIDER` picks explicitly; with it
+ * unset the route uses whichever key is present, so a deployment only needs to
+ * supply one. Both paths stream the same SSE shape, so the client never knows
+ * or cares which is answering.
+ */
+
+const CLAUDE_MODEL = "claude-opus-5";
+
+/**
+ * Gemini 2.5 Pro and 2.5 Flash shut down on 16 Oct 2026, so they are not an
+ * option here. 3.1 Pro is the stronger reasoning model, which is what an
+ * interview that has to exercise judgment wants; override for a cheaper or
+ * faster one (e.g. gemini-3.7-flash) without touching this file.
+ */
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.1-pro";
 
 const SYSTEM_PROMPT = `You are Kyndred, Veita's onboarding agent.
 
@@ -61,6 +79,19 @@ function intakeBriefing(intake: Intake | undefined): string {
   return `What the founder shared during intake:\n${lines.join("\n")}`;
 }
 
+const geminiKey = () =>
+  process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? "";
+
+/** Explicit choice wins; otherwise whichever provider has a key. */
+function resolveProvider(): "anthropic" | "gemini" | null {
+  const choice = process.env.CHAT_PROVIDER?.toLowerCase();
+  if (choice === "gemini") return geminiKey() ? "gemini" : null;
+  if (choice === "anthropic") return process.env.ANTHROPIC_API_KEY ? "anthropic" : null;
+  if (geminiKey()) return "gemini";
+  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
+  return null;
+}
+
 function sseError(message: string) {
   const body = `data: ${JSON.stringify({ error: message })}\n\ndata: [DONE]\n\n`;
   return new Response(body, {
@@ -78,14 +109,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No messages provided." }, { status: 400 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const provider = resolveProvider();
+  if (!provider) {
     return sseError(
-      "The onboarding agent is not configured yet — set ANTHROPIC_API_KEY to bring Kyndred online."
+      "The onboarding agent is not configured yet — set GEMINI_API_KEY or ANTHROPIC_API_KEY to bring Kyndred online."
     );
   }
 
-  const client = new Anthropic();
   const briefing = intakeBriefing(intake);
+  const system = briefing ? `${SYSTEM_PROMPT}\n\n${briefing}` : SYSTEM_PROMPT;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -96,42 +128,50 @@ export async function POST(request: Request) {
         );
 
       try {
-        const agentStream = client.messages.stream({
-          model: MODEL,
-          max_tokens: 4096,
-          thinking: { type: "adaptive" },
-          output_config: { effort: "medium" },
-          system: [
-            {
-              type: "text",
-              text: briefing
-                ? `${SYSTEM_PROMPT}\n\n${briefing}`
-                : SYSTEM_PROMPT,
-              cache_control: { type: "ephemeral" },
-            },
-          ],
-          messages: messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        });
+        if (provider === "gemini") {
+          const ai = new GoogleGenAI({ apiKey: geminiKey() });
+          const result = await ai.models.generateContentStream({
+            model: GEMINI_MODEL,
+            // Gemini names the assistant turn "model".
+            contents: messages.map((m) => ({
+              role: m.role === "assistant" ? "model" : "user",
+              parts: [{ text: m.content }],
+            })),
+            config: { systemInstruction: system },
+          });
+          for await (const chunk of result) {
+            const text = chunk.text;
+            if (text) send({ text });
+          }
+        } else {
+          const client = new Anthropic();
+          const agentStream = client.messages.stream({
+            model: CLAUDE_MODEL,
+            max_tokens: 4096,
+            thinking: { type: "adaptive" },
+            output_config: { effort: "medium" },
+            system: [
+              {
+                type: "text",
+                text: system,
+                cache_control: { type: "ephemeral" },
+              },
+            ],
+            messages: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+          });
 
-        agentStream.on("text", (delta) => send({ text: delta }));
+          agentStream.on("text", (delta) => send({ text: delta }));
 
-        const final = await agentStream.finalMessage();
-        if (final.stop_reason === "refusal") {
-          send({ error: "Kyndred declined to continue this conversation." });
+          const final = await agentStream.finalMessage();
+          if (final.stop_reason === "refusal") {
+            send({ error: "Kyndred declined to continue this conversation." });
+          }
         }
       } catch (e) {
-        const message =
-          e instanceof Anthropic.RateLimitError
-            ? "Rate limit reached. Wait a moment."
-            : e instanceof Anthropic.AuthenticationError
-              ? "Kyndred's credentials are invalid."
-              : e instanceof Anthropic.APIError
-                ? `Kyndred is unavailable right now (${e.status}).`
-                : "Connection error.";
-        send({ error: message });
+        send({ error: describe(e, provider) });
       } finally {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
@@ -146,4 +186,26 @@ export async function POST(request: Request) {
       Connection: "keep-alive",
     },
   });
+}
+
+/** Keep provider failures legible without leaking anything from the response. */
+function describe(e: unknown, provider: "anthropic" | "gemini"): string {
+  if (provider === "anthropic") {
+    if (e instanceof Anthropic.RateLimitError)
+      return "Rate limit reached. Wait a moment.";
+    if (e instanceof Anthropic.AuthenticationError)
+      return "Kyndred's credentials are invalid.";
+    if (e instanceof Anthropic.APIError)
+      return `Kyndred is unavailable right now (${e.status}).`;
+    return "Connection error.";
+  }
+
+  const message = e instanceof Error ? e.message : String(e);
+  if (/api[_ ]?key|unauthenticated|permission/i.test(message))
+    return "Kyndred's credentials are invalid.";
+  if (/quota|rate|429|resource_exhausted/i.test(message))
+    return "Rate limit reached. Wait a moment.";
+  if (/not found|unsupported|404/i.test(message))
+    return `Model ${GEMINI_MODEL} is unavailable — set GEMINI_MODEL to one your key can reach.`;
+  return "Kyndred is unavailable right now.";
 }

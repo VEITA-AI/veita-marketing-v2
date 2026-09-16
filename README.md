@@ -27,17 +27,30 @@ npm run dev
 
 ## Environment
 
-Both variables are optional — the site builds and renders without them, and the
-affected surfaces explain what is missing instead of failing silently.
+Everything is optional — the site builds and renders without any of it, and the
+affected surfaces say what is missing rather than failing silently.
 
 | Variable | Used by | Effect when unset |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | `/api/chat` | `/start` reaches the interview step but Kyndred reports that it is not configured |
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | `/api/chat` | Gemini path unavailable |
+| `ANTHROPIC_API_KEY` | `/api/chat` | Claude path unavailable |
+| `CHAT_PROVIDER` | `/api/chat` | Auto-selects whichever key is present |
+| `GEMINI_MODEL` | `/api/chat` | Defaults to `gemini-3.1-pro` |
 | `ADMIN_PASSCODE` | `/api/admin` | `/admin` reports that admin access is not configured |
 
-The onboarding agent streams from Claude (`claude-opus-5`) over SSE. The founder
-dashboard behind `/admin` still needs a datastore; the passcode gate is in place
-but unlocks nothing yet.
+The onboarding agent runs on **either Claude or Gemini**. Supply one key and it
+uses it; supply both and `CHAT_PROVIDER` (`gemini` | `anthropic`) decides. Both
+paths stream the same SSE shape, so the client is identical either way.
+
+Note on Gemini models: `gemini-2.5-pro` and `gemini-2.5-flash` shut down on
+16 Oct 2026 and are deliberately not used. The default is `gemini-3.1-pro` — the
+stronger reasoning model, which suits an interview that has to exercise
+judgment. Set `GEMINI_MODEL` for a cheaper or faster one (e.g.
+`gemini-3.7-flash`); if the id is not reachable by your key the route says so
+explicitly rather than failing opaquely.
+
+The founder dashboard behind `/admin` still needs a datastore; the passcode gate
+is in place but unlocks nothing yet.
 
 ## Design system
 
