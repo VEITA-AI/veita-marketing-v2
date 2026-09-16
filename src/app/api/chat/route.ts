@@ -17,11 +17,15 @@ const CLAUDE_MODEL = "claude-opus-5";
 
 /**
  * Gemini 2.5 Pro and 2.5 Flash shut down on 16 Oct 2026, so they are not an
- * option here. 3.1 Pro is the stronger reasoning model, which is what an
- * interview that has to exercise judgment wants; override for a cheaper or
- * faster one (e.g. gemini-3.7-flash) without touching this file.
+ * option here.
+ *
+ * Probed against the Veita project (saga-496018) over Vertex: the Pro models
+ * 404 — none are enabled on it — while 3.8/3.7/3.6 Flash and 3.5 Flash-Lite all
+ * answer. 3.7 Flash is the default because it is the one Google positions for
+ * agentic work. Override with GEMINI_MODEL; an id the project can't reach
+ * returns a message saying exactly that.
  */
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.1-pro";
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.7-flash";
 
 const SYSTEM_PROMPT = `You are Kyndred, Veita's onboarding agent.
 
@@ -82,14 +86,47 @@ function intakeBriefing(intake: Intake | undefined): string {
 const geminiKey = () =>
   process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? "";
 
-/** Explicit choice wins; otherwise whichever provider has a key. */
+const gcpProject = () =>
+  process.env.GOOGLE_CLOUD_PROJECT ?? process.env.GCLOUD_PROJECT ?? "";
+
+/**
+ * Two ways to reach Gemini:
+ *
+ *   - Vertex (Gemini Enterprise Agent Platform) with Application Default
+ *     Credentials, which is what a GCP org that disallows API keys will have.
+ *     Needs a project, no key; the SDK picks ADC up through
+ *     google-auth-library — the metadata server on GCP, GOOGLE_APPLICATION_
+ *     CREDENTIALS, or a local `gcloud auth application-default login`.
+ *   - The Developer API with a plain key.
+ *
+ * A configured project wins, since it is the more locked-down path and the one
+ * an org deliberately chose.
+ */
+const geminiReady = () => !!gcpProject() || !!geminiKey();
+
+/** Explicit choice wins; otherwise whichever provider is configured. */
 function resolveProvider(): "anthropic" | "gemini" | null {
   const choice = process.env.CHAT_PROVIDER?.toLowerCase();
-  if (choice === "gemini") return geminiKey() ? "gemini" : null;
+  if (choice === "gemini") return geminiReady() ? "gemini" : null;
   if (choice === "anthropic") return process.env.ANTHROPIC_API_KEY ? "anthropic" : null;
-  if (geminiKey()) return "gemini";
+  if (geminiReady()) return "gemini";
   if (process.env.ANTHROPIC_API_KEY) return "anthropic";
   return null;
+}
+
+/** Vertex + ADC when a project is configured, key auth otherwise. */
+function geminiClient(): GoogleGenAI {
+  const project = gcpProject();
+  if (project) {
+    return new GoogleGenAI({
+      // `enterprise` is the current flag; `vertexai` is its legacy alias.
+      enterprise: true,
+      project,
+      location: process.env.GOOGLE_CLOUD_LOCATION ?? "global",
+      // No apiKey: that is what makes the SDK fall through to ADC.
+    });
+  }
+  return new GoogleGenAI({ apiKey: geminiKey() });
 }
 
 function sseError(message: string) {
@@ -112,7 +149,7 @@ export async function POST(request: Request) {
   const provider = resolveProvider();
   if (!provider) {
     return sseError(
-      "The onboarding agent is not configured yet — set GEMINI_API_KEY or ANTHROPIC_API_KEY to bring Kyndred online."
+      "The onboarding agent is not configured yet — set GOOGLE_CLOUD_PROJECT (Vertex + ADC), GEMINI_API_KEY, or ANTHROPIC_API_KEY to bring Kyndred online."
     );
   }
 
@@ -129,7 +166,7 @@ export async function POST(request: Request) {
 
       try {
         if (provider === "gemini") {
-          const ai = new GoogleGenAI({ apiKey: geminiKey() });
+          const ai = geminiClient();
           const result = await ai.models.generateContentStream({
             model: GEMINI_MODEL,
             // Gemini names the assistant turn "model".
@@ -201,7 +238,11 @@ function describe(e: unknown, provider: "anthropic" | "gemini"): string {
   }
 
   const message = e instanceof Error ? e.message : String(e);
-  if (/api[_ ]?key|unauthenticated|permission/i.test(message))
+  if (/could not load the default credentials|application default credentials|ADC/i.test(message))
+    return "No Google credentials found — run `gcloud auth application-default login`, or give the service account access.";
+  if (/permission|forbidden|403|IAM/i.test(message))
+    return "Those Google credentials can't reach Vertex AI on this project — the account needs roles/aiplatform.user.";
+  if (/api[_ ]?key|unauthenticated|401/i.test(message))
     return "Kyndred's credentials are invalid.";
   if (/quota|rate|429|resource_exhausted/i.test(message))
     return "Rate limit reached. Wait a moment.";

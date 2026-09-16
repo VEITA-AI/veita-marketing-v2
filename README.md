@@ -30,24 +30,43 @@ npm run dev
 Everything is optional — the site builds and renders without any of it, and the
 affected surfaces say what is missing rather than failing silently.
 
-| Variable | Used by | Effect when unset |
+| Variable | Used by | Notes |
 | --- | --- | --- |
-| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | `/api/chat` | Gemini path unavailable |
-| `ANTHROPIC_API_KEY` | `/api/chat` | Claude path unavailable |
-| `CHAT_PROVIDER` | `/api/chat` | Auto-selects whichever key is present |
-| `GEMINI_MODEL` | `/api/chat` | Defaults to `gemini-3.1-pro` |
-| `ADMIN_PASSCODE` | `/api/admin` | `/admin` reports that admin access is not configured |
+| `GOOGLE_CLOUD_PROJECT` | `/api/chat` | Vertex AI via ADC — no key. Preferred. |
+| `GOOGLE_CLOUD_LOCATION` | `/api/chat` | Defaults to `global` |
+| `GEMINI_MODEL` | `/api/chat` | Defaults to `gemini-3.7-flash` |
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | `/api/chat` | Gemini Developer API, if key auth is available |
+| `ANTHROPIC_API_KEY` | `/api/chat` | Claude path |
+| `CHAT_PROVIDER` | `/api/chat` | `gemini` \| `anthropic`; auto-selects otherwise |
+| `ADMIN_PASSCODE` | `/api/admin` | `/admin` reports it is unconfigured without this |
 
-The onboarding agent runs on **either Claude or Gemini**. Supply one key and it
-uses it; supply both and `CHAT_PROVIDER` (`gemini` | `anthropic`) decides. Both
-paths stream the same SSE shape, so the client is identical either way.
+### The onboarding agent
 
-Note on Gemini models: `gemini-2.5-pro` and `gemini-2.5-flash` shut down on
-16 Oct 2026 and are deliberately not used. The default is `gemini-3.1-pro` — the
-stronger reasoning model, which suits an interview that has to exercise
-judgment. Set `GEMINI_MODEL` for a cheaper or faster one (e.g.
-`gemini-3.7-flash`); if the id is not reachable by your key the route says so
-explicitly rather than failing opaquely.
+Runs on Gemini or Claude behind one interface; both stream the same SSE shape,
+so the client never knows which answered. Resolution order: an explicit
+`CHAT_PROVIDER`, then a configured GCP project, then a Gemini key, then an
+Anthropic key.
+
+**Veita's GCP does not permit API keys**, so the Gemini path uses **Vertex AI
+with Application Default Credentials**: set `GOOGLE_CLOUD_PROJECT`, supply no
+key, and the SDK authenticates through `google-auth-library` — the metadata
+server in GCP, `GOOGLE_APPLICATION_CREDENTIALS`, or a local
+`gcloud auth application-default login`. `.env.local` is already set up for
+this; it is gitignored.
+
+Model availability was probed directly against the project rather than assumed:
+
+| Model | On `saga-496018` |
+| --- | --- |
+| `gemini-3.8-flash` | available |
+| `gemini-3.7-flash` | available — the default |
+| `gemini-3.6-flash` | available |
+| `gemini-3.5-flash-lite` | available |
+| any Pro (`gemini-3.1-pro`, `gemini-3-pro`) | **404 — not enabled** |
+
+`gemini-2.5-pro` and `gemini-2.5-flash` shut down on 16 Oct 2026 and are not
+used. An id the project can't reach returns a message saying so, rather than a
+generic failure.
 
 The founder dashboard behind `/admin` still needs a datastore; the passcode gate
 is in place but unlocks nothing yet.
