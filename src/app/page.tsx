@@ -182,7 +182,7 @@ export default function Home() {
       </section>
 
       {/* Real figures, counted up. Every one is sourced from a page below. */}
-      <Bleed className="pt-16 md:pt-28">
+      <Bleed className="pb-14 pt-16 md:pb-20 md:pt-28">
         <Reveal>
           <div
             className="grid grid-cols-2 gap-x-8 gap-y-10 pt-8 md:grid-cols-3 md:gap-x-10 md:gap-y-12 md:pt-10"
@@ -196,7 +196,7 @@ export default function Home() {
       </Bleed>
 
       {/* What the operating layer actually does, against the record. */}
-      <FullBleed className="riser sweep mt-16 py-16 md:mt-32 md:py-32">
+      <FullBleed className="riser sweep py-16 md:py-32">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-6">
@@ -259,12 +259,12 @@ export default function Home() {
         <Thread />
       </Bleed>
 
-      <Bleed className="pt-10 md:pt-12">
+      <Bleed className="pb-12 pt-10 md:pb-16 md:pt-12">
         <SectionHead eyebrow="the architecture" title="Four elements, one system" />
         <IndexList items={ELEMENTS} />
       </Bleed>
 
-      <FullBleed className="riser mt-16 py-16 md:mt-36 md:py-32">
+      <FullBleed className="riser py-16 md:py-32">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
           <SectionHead eyebrow="two doors" title="One system. Two ways in." />
           <SplitPair items={DOORS} />
