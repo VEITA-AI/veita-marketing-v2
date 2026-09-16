@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+
+/** Client-only and lazily loaded — three.js must not sit in the initial bundle. */
+const KyndredScene = dynamic(() => import("./scene/KyndredScene"), {
+  ssr: false,
+  loading: () => null,
+});
 
 /**
  * The compounding loop, told as a continuous scroll sequence.
@@ -116,6 +123,24 @@ export function CompoundingSequence() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [p, setP] = useState(0);
   const [still, setStill] = useState(false);
+  const [webgl, setWebgl] = useState(false);
+
+  useEffect(() => {
+    // Only mount the 3D scene where it can actually run, and never when the
+    // reader has asked for less motion.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    try {
+      const c = document.createElement("canvas");
+      const ok = !!(
+        c.getContext("webgl2") ||
+        c.getContext("webgl") ||
+        c.getContext("experimental-webgl")
+      );
+      setWebgl(ok);
+    } catch {
+      setWebgl(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -385,149 +410,124 @@ export function CompoundingSequence() {
 
             {/* Stage */}
             <div className="cs-root lg:col-span-8">
-              <svg
-                viewBox={camera(p)}
-                className="block h-full w-full"
-                role="img"
-                aria-label="A scroll sequence: Kyndred alone, then four Kyn appearing, connecting to the shared layer, their operating metadata travelling inward, and a play travelling back out to another Kyn."
+              <div
+                className="relative aspect-[10/7] w-full overflow-hidden"
+                style={{
+                  WebkitMaskImage:
+                    "radial-gradient(92% 92% at 50% 48%, #000 62%, transparent 100%)",
+                  maskImage:
+                    "radial-gradient(92% 92% at 50% 48%, #000 62%, transparent 100%)",
+                }}
               >
-                <defs>
-                  <radialGradient
-                    id="cs-spoke"
-                    gradientUnits="userSpaceOnUse"
-                    cx={CX}
-                    cy={CY}
-                    r={ORBIT}
+                {webgl ? (
+                  <KyndredScene
+                    progress={p}
+                    core={core}
+                    kynIn={kynIn}
+                    linkIn={linkIn}
+                    meta={meta}
+                    transfer={transfer}
+                  />
+                ) : (
+                  /* No WebGL (or reduced motion): the SVG stage still tells the
+                     whole story, it just doesn't render it in depth. */
+                  <svg
+                    viewBox="0 0 1000 720"
+                    className="block h-full w-full"
+                    role="img"
+                    aria-label="Kyndred at the centre with four Kyn connected to it, operating metadata travelling inward and a play travelling back out."
                   >
-                    <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.9" />
-                    <stop offset="100%" stopColor="#5f9fd6" stopOpacity="0.6" />
-                  </radialGradient>
-                  <radialGradient id="cs-disc" cx="36%" cy="28%" r="84%">
-                    <stop offset="0%" stopColor="#1e3a5c" />
-                    <stop offset="100%" stopColor="#111f36" />
-                  </radialGradient>
-                  <radialGradient id="cs-core" cx="38%" cy="30%" r="80%">
-                    <stop offset="0%" stopColor="#17304f" />
-                    <stop offset="100%" stopColor="#0a1730" />
-                  </radialGradient>
-                  <radialGradient id="cs-spec" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#bcd8f2" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#bcd8f2" stopOpacity="0" />
-                  </radialGradient>
-                  <radialGradient id="cs-glow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#3aaccc" stopOpacity="0.5" />
-                    <stop offset="55%" stopColor="#367bc0" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="#367bc0" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-
-                <circle
-                  cx={CX}
-                  cy={CY}
-                  r={CORE_R * 2.6}
-                  fill="url(#cs-glow)"
-                  className="cs-breath"
-                  opacity={0.4 + meta * 0.35 + transfer * 0.25}
-                />
-
-                {/* The orbital plane, seen at an angle. */}
-                <ellipse
-                  cx={CX}
-                  cy={CY}
-                  rx={ORBIT}
-                  ry={ORBIT * TILT}
-                  fill="none"
-                  stroke="rgba(143,192,234,0.14)"
-                  strokeWidth={1}
-                  strokeDasharray="2 10"
-                  opacity={kynIn * 0.9}
-                />
-
-                {/* Far side: drawn before the core, so the core occludes it. */}
-                {behind.map((n) => renderSpoke(n))}
-                {behind.map((n) => renderNode(n))}
-
-                {/* Kyndred */}
-                <g
-                  opacity={core}
-                  style={{
-                    transform: `scale(${0.88 + core * 0.12})`,
-                    transformOrigin: `${CX}px ${CY}px`,
-                  }}
-                >
-                  <circle
-                    cx={CX}
-                    cy={CY}
-                    r={CORE_R + 10}
-                    className="cs-ring cs-ring-core"
-                  />
-                  <circle
-                    cx={CX}
-                    cy={CY}
-                    r={CORE_R}
-                    fill="url(#cs-core)"
-                    stroke="rgba(58,172,204,0.45)"
-                  />
-                  <ellipse
-                    cx={CX - CORE_R * 0.3}
-                    cy={CY - CORE_R * 0.42}
-                    rx={CORE_R * 0.42}
-                    ry={CORE_R * 0.26}
-                    fill="url(#cs-spec)"
-                    opacity={0.55}
-                  />
-                  <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
-                    Kyndred
-                  </text>
-                  <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
-                    shared intelligence
-                  </text>
-                </g>
-
-                {/* Near side: drawn after the core, so it passes in front. */}
-                {inFront.map((n) => renderSpoke(n))}
-                {inFront.map((n) => renderNode(n))}
-
-                {/* The transfer, with a trail so the packet reads as moving. */}
-                {transfer > 0.01 && (
-                  <>
-                    <line
-                      x1={source.x}
-                      y1={source.y}
-                      x2={packetIn.x}
-                      y2={packetIn.y}
-                      stroke="var(--success)"
-                      strokeWidth={2}
-                      opacity={legIn < 1 ? 0.5 : 0}
-                    />
-                    <circle
-                      r={7}
-                      cx={packetIn.x}
-                      cy={packetIn.y}
-                      fill="var(--success)"
-                      opacity={legIn < 1 ? 1 : 0}
-                      style={{ filter: "drop-shadow(0 0 10px rgba(58,172,204,1))" }}
-                    />
-                    <line
-                      x1={CX}
-                      y1={CY}
-                      x2={packetOut.x}
-                      y2={packetOut.y}
-                      stroke="var(--sky)"
-                      strokeWidth={2}
-                      opacity={legOut > 0 && legOut < 1 ? 0.55 : 0}
-                    />
-                    <circle
-                      r={7}
-                      cx={packetOut.x}
-                      cy={packetOut.y}
-                      fill="var(--sky)"
-                      opacity={legOut > 0 ? 1 : 0}
-                      style={{ filter: "drop-shadow(0 0 10px rgba(143,192,234,1))" }}
-                    />
-                  </>
+                    <defs>
+                      <radialGradient id="cs-disc" cx="36%" cy="28%" r="84%">
+                        <stop offset="0%" stopColor="#1e3a5c" />
+                        <stop offset="100%" stopColor="#111f36" />
+                      </radialGradient>
+                      <radialGradient id="cs-core" cx="38%" cy="30%" r="80%">
+                        <stop offset="0%" stopColor="#17304f" />
+                        <stop offset="100%" stopColor="#0a1730" />
+                      </radialGradient>
+                      <radialGradient id="cs-spec" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#bcd8f2" stopOpacity="0.5" />
+                        <stop offset="100%" stopColor="#bcd8f2" stopOpacity="0" />
+                      </radialGradient>
+                      <radialGradient
+                        id="cs-spoke"
+                        gradientUnits="userSpaceOnUse"
+                        cx={CX}
+                        cy={CY}
+                        r={ORBIT}
+                      >
+                        <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="#5f9fd6" stopOpacity="0.6" />
+                      </radialGradient>
+                    </defs>
+                    {behind.map((n) => renderSpoke(n))}
+                    {behind.map((n) => renderNode(n))}
+                    <g opacity={core}>
+                      <circle
+                        cx={CX}
+                        cy={CY}
+                        r={CORE_R}
+                        fill="url(#cs-core)"
+                        stroke="rgba(58,172,204,0.45)"
+                      />
+                      <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
+                        Kyndred
+                      </text>
+                      <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
+                        shared intelligence
+                      </text>
+                    </g>
+                    {inFront.map((n) => renderSpoke(n))}
+                    {inFront.map((n) => renderNode(n))}
+                  </svg>
                 )}
-              </svg>
+              </div>
+              {/* Detail lives here rather than in the scene: readable, and it
+                  can never collide with the geometry. */}
+              <div
+                className="mt-2 grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4"
+                style={{ opacity: kynIn }}
+              >
+                {KYNS.map((k, i) => {
+                  const lit = i === 1 && legOut > 0.2;
+                  return (
+                    <div
+                      key={k.name}
+                      className="flex items-baseline gap-2.5 pt-3"
+                      style={{
+                        borderTop: `1px solid ${lit ? "var(--success)" : "var(--rule-soft)"}`,
+                        transition: "border-color var(--dur-base) var(--ease-out-quart)",
+                      }}
+                    >
+                      <span
+                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{
+                          background: lit ? "var(--success)" : "var(--sky)",
+                          opacity: lit ? 1 : 0.5,
+                        }}
+                      />
+                      <div className="min-w-0">
+                        <div
+                          className="font-mono text-[9.5px] uppercase"
+                          style={{ letterSpacing: "0.16em", color: "var(--muted-fg)" }}
+                        >
+                          {k.domain}
+                        </div>
+                        <div
+                          className="mt-1.5 text-[12px] leading-snug"
+                          style={{
+                            color: lit ? "var(--success)" : "var(--body-fg)",
+                            transition: "color var(--dur-base) var(--ease-out-quart)",
+                          }}
+                        >
+                          {lit && k.okrAfter ? k.okrAfter : k.okr}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
               {still && (
                 <p

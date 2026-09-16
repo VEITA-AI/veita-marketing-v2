@@ -25,14 +25,14 @@ export default function RootLayout({
           rel="preload"
           as="font"
           type="font/woff2"
-          href="/fonts/dm-serif-display-latin.woff2"
+          href="/fonts/bricolage-grotesque-latin.woff2"
           crossOrigin="anonymous"
         />
         <link
           rel="preload"
           as="font"
           type="font/woff2"
-          href="/fonts/dm-sans-latin.woff2"
+          href="/fonts/schibsted-grotesk-latin.woff2"
           crossOrigin="anonymous"
         />
       </head>
