@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { Headline } from "@/components/site/Sections";
+import { CtaButton } from "@/components/site/CtaButton";
 
 /** Client-only and lazily loaded — three.js must not sit in the initial bundle. */
 const KyndredScene = dynamic(() => import("./scene/KyndredScene"), {
@@ -81,6 +83,12 @@ const BEATS = [
     label: "the transfer",
     title: "Finance starts the quarter with Sales' answer.",
     body: "Sales learns that a call after two ignored emails gets invoices paid. Kyndred abstracts the pattern out of the metadata and hands it to Finance as a play — before Finance ever hits the problem.",
+  },
+  {
+    label: "what compounds",
+    title: "Now run that in every direction, forever.",
+    body: "Every Kyn is both a source and a beneficiary, continuously. The portfolio doesn't just grow — it gets cheaper and faster to build into. That advantage compounds in one direction, and it isn't easily copied.",
+    closer: true,
   },
 ];
 
@@ -208,17 +216,26 @@ export function CompoundingSequence() {
   const inFront = nodes.filter((n) => n.depth >= 0).sort((a, b) => a.depth - b.depth);
 
   // Overlapping windows — each begins before the last has settled.
-  const core = span(p, 0.0, 0.06);
-  const kynIn = span(p, 0.1, 0.34);
-  const linkIn = span(p, 0.28, 0.5);
-  const meta = span(p, 0.46, 0.7);
-  const transfer = span(p, 0.7, 0.96);
+  const core = span(p, 0.0, 0.05);
+  const kynIn = span(p, 0.08, 0.27);
+  const linkIn = span(p, 0.24, 0.42);
+  const meta = span(p, 0.4, 0.58);
+  const transfer = span(p, 0.58, 0.79);
+  const payoff = span(p, 0.82, 0.97);
 
-  const beat = p < 0.13 ? 0 : p < 0.31 ? 1 : p < 0.49 ? 2 : p < 0.7 ? 3 : 4;
+  const bounds = [0, 0.1, 0.26, 0.42, 0.58, 0.8, 1];
+  const beat = Math.min(
+    Math.max(
+      bounds.findIndex((_, i) => i < BEATS.length && p < bounds[i + 1]),
+      0
+    ),
+    BEATS.length - 1
+  );
   // Progress *within* the active beat, used to keep the narration moving.
-  const bounds = [0, 0.13, 0.31, 0.49, 0.7, 1];
-  const within =
-    (p - bounds[beat]) / (bounds[beat + 1] - bounds[beat] || 1);
+  const within = Math.min(
+    Math.max((p - bounds[beat]) / (bounds[beat + 1] - bounds[beat] || 1), 0),
+    1
+  );
 
   const source = nodes[0];
   const target = nodes[1];
@@ -326,18 +343,24 @@ export function CompoundingSequence() {
   };
 
   return (
-    <div ref={trackRef} className="relative h-[340vh] md:h-[460vh]">
+    <div ref={trackRef} className="relative h-[400vh] md:h-[560vh]">
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
           <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
             {/* Narration */}
             <div className="lg:col-span-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 {BEATS.map((_, i) => (
                   <span
                     key={i}
-                    className="relative h-[2px] flex-1 overflow-hidden rounded-full"
-                    style={{ background: "var(--rule-soft)" }}
+                    className="relative h-[2px] overflow-hidden rounded-full"
+                    style={{
+                      // The active chapter takes more room, so position in the
+                      // journey is legible at a glance.
+                      flex: i === beat ? 2.2 : 1,
+                      background: "var(--rule-soft)",
+                      transition: "flex var(--dur-medium) var(--ease-out-quart)",
+                    }}
                   >
                     <span
                       className="absolute inset-y-0 left-0"
@@ -351,7 +374,7 @@ export function CompoundingSequence() {
                 ))}
               </div>
 
-              <div className="relative mt-8 min-h-[300px] md:min-h-[320px]">
+              <div className="relative mt-8 min-h-[330px] md:min-h-[350px]">
                 {BEATS.map((b, i) => {
                   const active = i === beat;
                   return (
@@ -360,26 +383,50 @@ export function CompoundingSequence() {
                       className="absolute inset-0"
                       style={{
                         opacity: active ? 1 : 0,
-                        // Copy keeps drifting through the beat, so the block is
-                        // never completely static between transitions.
                         transform: active
-                          ? `translateY(${(1 - within) * 14 - 7}px)`
-                          : "translateY(18px)",
-                        filter: active ? "none" : "blur(4px)",
+                          ? `translateY(${(1 - within) * 12 - 6}px)`
+                          : "translateY(20px)",
+                        filter: active ? "none" : "blur(5px)",
                         pointerEvents: active ? undefined : "none",
                         transition:
                           "opacity var(--dur-medium) var(--ease-out-quart), filter var(--dur-medium) var(--ease-out-quart)",
                       }}
                     >
-                      <div
-                        className="font-mono text-[11px] uppercase"
-                        style={{ letterSpacing: "0.22em", color: "var(--ember)" }}
-                      >
-                        <span style={{ opacity: 0.55 }}>§ </span>
-                        {b.label}
+                      {/* Chapter numeral, set as a ghost behind the label. */}
+                      <div className="flex items-center gap-4">
+                        <span
+                          className="font-display tabular-nums"
+                          style={{
+                            fontSize: 34,
+                            fontWeight: 500,
+                            letterSpacing: "-0.04em",
+                            lineHeight: 1,
+                            color: "var(--ember)",
+                            opacity: 0.32,
+                          }}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className="h-px flex-1"
+                          style={{
+                            background: "var(--rule-strong)",
+                            transform: `scaleX(${active ? 0.35 + within * 0.65 : 0})`,
+                            transformOrigin: "left",
+                            transition:
+                              "transform var(--dur-slow) var(--ease-out-expo)",
+                          }}
+                        />
+                        <span
+                          className="font-mono text-[10px] uppercase"
+                          style={{ letterSpacing: "0.22em", color: "var(--ember)" }}
+                        >
+                          {b.label}
+                        </span>
                       </div>
+
                       <h3
-                        className="mt-5 font-display"
+                        className="mt-7 font-display"
                         style={{
                           fontWeight: 500,
                           letterSpacing: "-0.035em",
@@ -387,7 +434,7 @@ export function CompoundingSequence() {
                           fontSize: "clamp(1.55rem, 1rem + 1.4vw, 2.3rem)",
                         }}
                       >
-                        {b.title}
+                        {active ? <Headline text={b.title} /> : b.title}
                       </h3>
                       <p
                         className="mt-5 max-w-[44ch] text-[14.5px] leading-[1.6]"
@@ -395,6 +442,19 @@ export function CompoundingSequence() {
                       >
                         {b.body}
                       </p>
+
+                      {/* The journey has to arrive somewhere. */}
+                      {b.closer && (
+                        <div
+                          className="mt-8"
+                          style={{
+                            opacity: within,
+                            transform: `translateY(${(1 - within) * 10}px)`,
+                          }}
+                        >
+                          <CtaButton label="See it on your own plan" />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -427,6 +487,7 @@ export function CompoundingSequence() {
                     linkIn={linkIn}
                     meta={meta}
                     transfer={transfer}
+                    payoff={payoff}
                   />
                 ) : (
                   /* No WebGL (or reduced motion): the SVG stage still tells the
@@ -483,50 +544,101 @@ export function CompoundingSequence() {
                   </svg>
                 )}
               </div>
-              {/* Detail lives here rather than in the scene: readable, and it
-                  can never collide with the geometry. */}
-              <div
-                className="mt-2 grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4"
-                style={{ opacity: kynIn }}
-              >
-                {KYNS.map((k, i) => {
-                  const lit = i === 1 && legOut > 0.2;
-                  return (
-                    <div
-                      key={k.name}
-                      className="flex items-baseline gap-2.5 pt-3"
-                      style={{
-                        borderTop: `1px solid ${lit ? "var(--success)" : "var(--rule-soft)"}`,
-                        transition: "border-color var(--dur-base) var(--ease-out-quart)",
-                      }}
-                    >
-                      <span
-                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+              {/* The same four Kyn as the scene above, named. Each row lights
+                  when its orb does, so the two halves read as one object. */}
+              <div className="mt-4" style={{ opacity: kynIn }}>
+                <div
+                  className="mb-3 flex items-baseline justify-between gap-4 font-mono text-[9.5px] uppercase"
+                  style={{ letterSpacing: "0.2em", color: "var(--muted-fg)" }}
+                >
+                  <span>
+                    <span style={{ opacity: 0.55 }}>§ </span>the four kyn · live okrs
+                  </span>
+                  <span
+                    style={{
+                      color: payoff > 0.15 ? "var(--success)" : "var(--muted-fg)",
+                      transition: "color var(--dur-base) var(--ease-out-quart)",
+                    }}
+                  >
+                    {payoff > 0.15
+                      ? "all drawing down"
+                      : transfer > 0.15
+                        ? "1 play in flight"
+                        : meta > 0.1
+                          ? "contributing metadata"
+                          : "connected"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4">
+                  {KYNS.map((k, i) => {
+                    // Rows arrive in step with their orbs.
+                    const row = ease(
+                      Math.min(Math.max(kynIn * 1.5 - i * 0.16, 0), 1)
+                    );
+                    const isSource = transfer > 0.08 && i === 0;
+                    const isTarget = legOut > 0.2 && i === 1;
+                    const lit = isTarget || payoff > 0.15;
+                    return (
+                      <div
+                        key={k.name}
+                        className="flex items-baseline gap-2.5 pt-3"
                         style={{
-                          background: lit ? "var(--success)" : "var(--sky)",
-                          opacity: lit ? 1 : 0.5,
+                          opacity: row,
+                          transform: `translateY(${(1 - row) * 8}px)`,
+                          borderTop: `1px solid ${
+                            lit
+                              ? "var(--success)"
+                              : isSource
+                                ? "var(--sky)"
+                                : "var(--rule-soft)"
+                          }`,
+                          transition:
+                            "border-color var(--dur-base) var(--ease-out-quart)",
                         }}
-                      />
-                      <div className="min-w-0">
-                        <div
-                          className="font-mono text-[9.5px] uppercase"
-                          style={{ letterSpacing: "0.16em", color: "var(--muted-fg)" }}
-                        >
-                          {k.domain}
-                        </div>
-                        <div
-                          className="mt-1.5 text-[12px] leading-snug"
+                      >
+                        <span
+                          className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
+                            isSource || lit ? "pulse-dot" : ""
+                          }`}
                           style={{
-                            color: lit ? "var(--success)" : "var(--body-fg)",
-                            transition: "color var(--dur-base) var(--ease-out-quart)",
+                            background: lit
+                              ? "var(--success)"
+                              : isSource
+                                ? "var(--sky)"
+                                : "var(--sky)",
+                            opacity: lit || isSource ? 1 : 0.45,
                           }}
-                        >
-                          {lit && k.okrAfter ? k.okrAfter : k.okr}
+                        />
+                        <div className="min-w-0">
+                          <div
+                            className="font-mono text-[9.5px] uppercase"
+                            style={{
+                              letterSpacing: "0.16em",
+                              color: "var(--muted-fg)",
+                            }}
+                          >
+                            {k.name} · {k.domain}
+                          </div>
+                          <div
+                            className="mt-1.5 text-[12px] leading-snug"
+                            style={{
+                              color: lit ? "var(--success)" : "var(--body-fg)",
+                              transition:
+                                "color var(--dur-base) var(--ease-out-quart)",
+                            }}
+                          >
+                            {isTarget && k.okrAfter
+                              ? k.okrAfter
+                              : payoff > 0.15
+                                ? `${k.okr} · play applied`
+                                : k.okr}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
 
               {still && (

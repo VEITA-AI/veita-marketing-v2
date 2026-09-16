@@ -27,6 +27,8 @@ export type SceneProps = {
   linkIn: number;
   meta: number;
   transfer: number;
+  /** The closing beat — every Kyn drawing down at once. */
+  payoff: number;
 };
 
 const KYNS = [
@@ -261,13 +263,47 @@ function Spoke({ from, to, amount }: { from: THREE.Vector3; to: THREE.Vector3; a
   );
 }
 
+/** Shockwaves from the hub — the visual full stop on the sequence. */
+function Flare({ amount }: { amount: number }) {
+  const g = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    if (!g.current) return;
+    g.current.children.forEach((child, i) => {
+      const t = (state.clock.elapsedTime * 0.42 + i * 0.33) % 1;
+      const scale = 1.6 + t * 7.5;
+      child.scale.setScalar(scale);
+      const m = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
+      m.opacity = (1 - t) * 0.5 * amount;
+    });
+  });
+  return (
+    <group ref={g} rotation={[Math.PI / 2, 0, 0]}>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i}>
+          <ringGeometry args={[0.96, 1, 96]} />
+          <meshBasicMaterial
+            color="#6fd0e8"
+            transparent
+            side={THREE.DoubleSide}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function Rig({ progress }: { progress: number }) {
   const { camera } = useThree();
   useFrame((state, delta) => {
     // Dolly from inside the cloud out to the whole system, then back in a touch.
     const z = progress < 0.3
       ? THREE.MathUtils.lerp(4.2, 16.5, easeOut(progress / 0.3))
-      : THREE.MathUtils.lerp(16.5, 14.2, easeOut((progress - 0.3) / 0.7));
+      : progress < 0.8
+        ? THREE.MathUtils.lerp(16.5, 13.8, easeOut((progress - 0.3) / 0.5))
+        : THREE.MathUtils.lerp(13.8, 18.5, easeOut((progress - 0.8) / 0.2));
     const y = THREE.MathUtils.lerp(0.4, 3.4, easeOut(progress));
     // A little breathing on top so the camera is never perfectly still.
     const drift = Math.sin(state.clock.elapsedTime * 0.25) * 0.22;
@@ -278,7 +314,7 @@ function Rig({ progress }: { progress: number }) {
 }
 
 function Scene(props: SceneProps) {
-  const { progress, core, kynIn, linkIn, meta, transfer } = props;
+  const { progress, core, kynIn, linkIn, meta, transfer, payoff } = props;
   const spin = THREE.MathUtils.lerp(-0.28, 0.34, progress);
   const positions = KYNS.map((_, i) => nodePosition(i, spin));
 
@@ -291,12 +327,16 @@ function Scene(props: SceneProps) {
       <pointLight position={[0, 0, 0]} intensity={14} color="#4aa6d8" distance={18} />
       <pointLight position={[6, 6, 8]} intensity={9} color="#8fc0ea" distance={30} />
 
-      <Core amount={core} energy={meta} />
+      <Core amount={core} energy={Math.max(meta, payoff)} />
+      {payoff > 0.01 && <Flare amount={payoff} />}
 
       {positions.map((pos, i) => {
         const appear = easeOut(Math.min(Math.max(kynIn * 1.5 - i * 0.16, 0), 1));
         if (appear < 0.01) return null;
-        const highlight = i === 1 ? legOut : i === 0 ? transfer : 0;
+        const highlight = Math.max(
+          payoff,
+          i === 1 ? legOut : i === 0 ? transfer : 0
+        );
         const link = easeOut(Math.min(Math.max(linkIn * 1.5 - i * 0.1, 0), 1));
         const dir = pos.clone().normalize();
         const from = dir.clone().multiplyScalar(1.5);
@@ -317,7 +357,7 @@ function Scene(props: SceneProps) {
                   from={from}
                   to={to}
                   colour="#8fc0ea"
-                  strength={(0.3 + transfer * 0.6) * link}
+                  strength={(0.3 + Math.max(transfer, payoff) * 0.7) * link}
                   offset={i * 0.25 + 0.5}
                   reverse
                 />
