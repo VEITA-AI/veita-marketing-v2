@@ -132,6 +132,7 @@ export function CompoundingSequence() {
   const [p, setP] = useState(0);
   const [still, setStill] = useState(false);
   const [webgl, setWebgl] = useState(false);
+  const [compact, setCompact] = useState(false);
 
   useEffect(() => {
     // Only mount the 3D scene where it can actually run, and never when the
@@ -148,6 +149,11 @@ export function CompoundingSequence() {
     } catch {
       setWebgl(false);
     }
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const sync = () => setCompact(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
   }, []);
 
   useEffect(() => {
@@ -157,15 +163,38 @@ export function CompoundingSequence() {
       return;
     }
     let frame = 0;
+    let raf = 0;
+    const target = { v: 0 };
+    let current = 0;
+
     const measure = () => {
       frame = 0;
       const el = trackRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const scrollable = rect.height - window.innerHeight;
-      if (scrollable <= 0) return setP(1);
-      setP(Math.min(Math.max(-rect.top / scrollable, 0), 1));
+      target.v =
+        scrollable <= 0
+          ? 1
+          : Math.min(Math.max(-rect.top / scrollable, 0), 1);
+      if (!raf) raf = requestAnimationFrame(tick);
     };
+
+    // Critically-damped follow, framerate independent. Without this the scene
+    // steps with the wheel and each beat ends on a cut rather than a settle.
+    const tick = () => {
+      raf = 0;
+      const diff = target.v - current;
+      if (Math.abs(diff) < 0.00025) {
+        current = target.v;
+        setP(current);
+        return;
+      }
+      current += diff * 0.12;
+      setP(current);
+      raf = requestAnimationFrame(tick);
+    };
+
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(measure);
     };
@@ -176,6 +205,7 @@ export function CompoundingSequence() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(raf);
     };
   }, []);
 
@@ -216,12 +246,14 @@ export function CompoundingSequence() {
   const inFront = nodes.filter((n) => n.depth >= 0).sort((a, b) => a.depth - b.depth);
 
   // Overlapping windows — each begins before the last has settled.
-  const core = span(p, 0.0, 0.05);
-  const kynIn = span(p, 0.08, 0.27);
-  const linkIn = span(p, 0.24, 0.42);
-  const meta = span(p, 0.4, 0.58);
-  const transfer = span(p, 0.58, 0.79);
-  const payoff = span(p, 0.82, 0.97);
+  // Bounds are [0, .1, .26, .42, .58, .8, 1]. Each window lands before its
+  // beat ends, leaving a beat of stillness to read in.
+  const core = span(p, 0.0, 0.06);
+  const kynIn = span(p, 0.085, 0.225);
+  const linkIn = span(p, 0.245, 0.375);
+  const meta = span(p, 0.405, 0.535);
+  const transfer = span(p, 0.565, 0.745);
+  const payoff = span(p, 0.785, 0.93);
 
   const bounds = [0, 0.1, 0.26, 0.42, 0.58, 0.8, 1];
   const beat = Math.min(
@@ -344,19 +376,108 @@ export function CompoundingSequence() {
 
   return (
     <div ref={trackRef} className="relative h-[400vh] md:h-[560vh]">
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
-          <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
-            {/* Narration */}
-            <div className="lg:col-span-4">
+      {/* The scene fills the viewport and the story sits inside it. Boxed into
+          a column it read as a video playing beside the text; full-bleed it
+          reads as a space you are moving through. */}
+      <div className="sticky top-0 h-screen overflow-hidden">
+        <div className="cs-root absolute inset-0">
+          {webgl ? (
+            <KyndredScene
+              progress={p}
+              core={core}
+              kynIn={kynIn}
+              linkIn={linkIn}
+              meta={meta}
+              transfer={transfer}
+              payoff={payoff}
+              compact={compact}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center px-6">
+              <svg
+                viewBox="0 0 1000 720"
+                className="block h-full w-full max-w-[860px]"
+                role="img"
+                aria-label="Kyndred at the centre with four Kyn connected to it, operating metadata travelling inward and a play travelling back out."
+              >
+                <defs>
+                  <radialGradient id="cs-disc" cx="36%" cy="28%" r="84%">
+                    <stop offset="0%" stopColor="#1e3a5c" />
+                    <stop offset="100%" stopColor="#111f36" />
+                  </radialGradient>
+                  <radialGradient id="cs-core" cx="38%" cy="30%" r="80%">
+                    <stop offset="0%" stopColor="#17304f" />
+                    <stop offset="100%" stopColor="#0a1730" />
+                  </radialGradient>
+                  <radialGradient id="cs-spec" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#bcd8f2" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#bcd8f2" stopOpacity="0" />
+                  </radialGradient>
+                  <radialGradient
+                    id="cs-spoke"
+                    gradientUnits="userSpaceOnUse"
+                    cx={CX}
+                    cy={CY}
+                    r={ORBIT}
+                  >
+                    <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#5f9fd6" stopOpacity="0.6" />
+                  </radialGradient>
+                </defs>
+                {behind.map((n) => renderSpoke(n))}
+                {behind.map((n) => renderNode(n))}
+                <g opacity={core}>
+                  <circle
+                    cx={CX}
+                    cy={CY}
+                    r={CORE_R}
+                    fill="url(#cs-core)"
+                    stroke="rgba(58,172,204,0.45)"
+                  />
+                  <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
+                    Kyndred
+                  </text>
+                  <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
+                    shared intelligence
+                  </text>
+                </g>
+                {inFront.map((n) => renderSpoke(n))}
+                {inFront.map((n) => renderNode(n))}
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Scrims: keep type legible over the scene without boxing it. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              compact
+                ? "linear-gradient(180deg, var(--background) 0%, rgba(15,25,33,0.94) 46%, rgba(15,25,33,0.82) 68%, rgba(15,25,33,0.9) 100%)"
+                : "linear-gradient(97deg, var(--background) 0%, var(--background) 22%, rgba(15,25,33,0.9) 38%, rgba(15,25,33,0.5) 52%, transparent 70%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-56"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent, rgba(15,25,33,0.88) 62%, var(--background))",
+          }}
+        />
+
+        {/* The story, inside the space rather than beside it */}
+        <div className="relative flex h-full flex-col justify-center">
+          <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
+            <div className="max-w-[46ch] pb-44 md:pb-36">
               <div className="flex items-center gap-1.5">
                 {BEATS.map((_, i) => (
                   <span
                     key={i}
                     className="relative h-[2px] overflow-hidden rounded-full"
                     style={{
-                      // The active chapter takes more room, so position in the
-                      // journey is legible at a glance.
                       flex: i === beat ? 2.2 : 1,
                       background: "var(--rule-soft)",
                       transition: "flex var(--dur-medium) var(--ease-out-quart)",
@@ -374,7 +495,7 @@ export function CompoundingSequence() {
                 ))}
               </div>
 
-              <div className="relative mt-8 min-h-[330px] md:min-h-[350px]">
+              <div className="relative mt-8 min-h-[320px] md:min-h-[340px]">
                 {BEATS.map((b, i) => {
                   const active = i === beat;
                   return (
@@ -392,7 +513,6 @@ export function CompoundingSequence() {
                           "opacity var(--dur-medium) var(--ease-out-quart), filter var(--dur-medium) var(--ease-out-quart)",
                       }}
                     >
-                      {/* Chapter numeral, set as a ghost behind the label. */}
                       <div className="flex items-center gap-4">
                         <span
                           className="font-display tabular-nums"
@@ -431,19 +551,18 @@ export function CompoundingSequence() {
                           fontWeight: 500,
                           letterSpacing: "-0.035em",
                           lineHeight: 1.1,
-                          fontSize: "clamp(1.55rem, 1rem + 1.4vw, 2.3rem)",
+                          fontSize: "clamp(1.6rem, 1rem + 1.6vw, 2.5rem)",
                         }}
                       >
                         {active ? <Headline text={b.title} /> : b.title}
                       </h3>
                       <p
-                        className="mt-5 max-w-[44ch] text-[14.5px] leading-[1.6]"
+                        className="mt-5 text-[15px] leading-[1.6]"
                         style={{ color: "var(--body-fg)" }}
                       >
                         {b.body}
                       </p>
 
-                      {/* The journey has to arrive somewhere. */}
                       {b.closer && (
                         <div
                           className="mt-8"
@@ -459,196 +578,95 @@ export function CompoundingSequence() {
                   );
                 })}
               </div>
-
-              <div
-                className="mt-2 font-mono text-[10px] uppercase tabular-nums"
-                style={{ letterSpacing: "0.18em", color: "var(--muted-fg)" }}
-              >
-                {String(beat + 1).padStart(2, "0")} / 0{BEATS.length}
-              </div>
             </div>
+          </div>
+        </div>
 
-            {/* Stage */}
-            <div className="cs-root lg:col-span-8">
-              <div
-                className="relative aspect-[10/7] w-full overflow-hidden"
+        {/* The four Kyn, read across the foot of the space */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{ opacity: kynIn }}
+        >
+          <div className="mx-auto w-full max-w-[1240px] px-6 pb-24 md:px-10 md:pb-8">
+            <div
+              className="mb-3 flex items-baseline justify-between gap-4 font-mono text-[9.5px] uppercase"
+              style={{ letterSpacing: "0.2em", color: "var(--muted-fg)" }}
+            >
+              <span>
+                <span style={{ opacity: 0.55 }}>§ </span>the four kyn · live okrs
+              </span>
+              <span
                 style={{
-                  WebkitMaskImage:
-                    "radial-gradient(92% 92% at 50% 48%, #000 62%, transparent 100%)",
-                  maskImage:
-                    "radial-gradient(92% 92% at 50% 48%, #000 62%, transparent 100%)",
+                  color: payoff > 0.15 ? "var(--success)" : "var(--muted-fg)",
+                  transition: "color var(--dur-base) var(--ease-out-quart)",
                 }}
               >
-                {webgl ? (
-                  <KyndredScene
-                    progress={p}
-                    core={core}
-                    kynIn={kynIn}
-                    linkIn={linkIn}
-                    meta={meta}
-                    transfer={transfer}
-                    payoff={payoff}
-                  />
-                ) : (
-                  /* No WebGL (or reduced motion): the SVG stage still tells the
-                     whole story, it just doesn't render it in depth. */
-                  <svg
-                    viewBox="0 0 1000 720"
-                    className="block h-full w-full"
-                    role="img"
-                    aria-label="Kyndred at the centre with four Kyn connected to it, operating metadata travelling inward and a play travelling back out."
-                  >
-                    <defs>
-                      <radialGradient id="cs-disc" cx="36%" cy="28%" r="84%">
-                        <stop offset="0%" stopColor="#1e3a5c" />
-                        <stop offset="100%" stopColor="#111f36" />
-                      </radialGradient>
-                      <radialGradient id="cs-core" cx="38%" cy="30%" r="80%">
-                        <stop offset="0%" stopColor="#17304f" />
-                        <stop offset="100%" stopColor="#0a1730" />
-                      </radialGradient>
-                      <radialGradient id="cs-spec" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#bcd8f2" stopOpacity="0.5" />
-                        <stop offset="100%" stopColor="#bcd8f2" stopOpacity="0" />
-                      </radialGradient>
-                      <radialGradient
-                        id="cs-spoke"
-                        gradientUnits="userSpaceOnUse"
-                        cx={CX}
-                        cy={CY}
-                        r={ORBIT}
-                      >
-                        <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.9" />
-                        <stop offset="100%" stopColor="#5f9fd6" stopOpacity="0.6" />
-                      </radialGradient>
-                    </defs>
-                    {behind.map((n) => renderSpoke(n))}
-                    {behind.map((n) => renderNode(n))}
-                    <g opacity={core}>
-                      <circle
-                        cx={CX}
-                        cy={CY}
-                        r={CORE_R}
-                        fill="url(#cs-core)"
-                        stroke="rgba(58,172,204,0.45)"
-                      />
-                      <text x={CX} y={CY - 6} className="cs-label" fontSize={23}>
-                        Kyndred
-                      </text>
-                      <text x={CX} y={CY + 19} className="cs-sub" fontSize={9.5}>
-                        shared intelligence
-                      </text>
-                    </g>
-                    {inFront.map((n) => renderSpoke(n))}
-                    {inFront.map((n) => renderNode(n))}
-                  </svg>
-                )}
-              </div>
-              {/* The same four Kyn as the scene above, named. Each row lights
-                  when its orb does, so the two halves read as one object. */}
-              <div className="mt-4" style={{ opacity: kynIn }}>
-                <div
-                  className="mb-3 flex items-baseline justify-between gap-4 font-mono text-[9.5px] uppercase"
-                  style={{ letterSpacing: "0.2em", color: "var(--muted-fg)" }}
-                >
-                  <span>
-                    <span style={{ opacity: 0.55 }}>§ </span>the four kyn · live okrs
-                  </span>
-                  <span
+                {payoff > 0.15
+                  ? "all drawing down"
+                  : transfer > 0.15
+                    ? "1 play in flight"
+                    : meta > 0.1
+                      ? "contributing metadata"
+                      : "connected"}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4">
+              {KYNS.map((k, i) => {
+                const row = ease(Math.min(Math.max(kynIn * 1.5 - i * 0.16, 0), 1));
+                const isSource = transfer > 0.08 && i === 0;
+                const isTarget = legOut > 0.2 && i === 1;
+                const lit = isTarget || payoff > 0.15;
+                return (
+                  <div
+                    key={k.name}
+                    className="flex items-baseline gap-2.5 pt-3"
                     style={{
-                      color: payoff > 0.15 ? "var(--success)" : "var(--muted-fg)",
-                      transition: "color var(--dur-base) var(--ease-out-quart)",
+                      opacity: row,
+                      transform: `translateY(${(1 - row) * 8}px)`,
+                      borderTop: `1px solid ${
+                        lit
+                          ? "var(--success)"
+                          : isSource
+                            ? "var(--sky)"
+                            : "var(--rule-soft)"
+                      }`,
+                      transition:
+                        "border-color var(--dur-base) var(--ease-out-quart)",
                     }}
                   >
-                    {payoff > 0.15
-                      ? "all drawing down"
-                      : transfer > 0.15
-                        ? "1 play in flight"
-                        : meta > 0.1
-                          ? "contributing metadata"
-                          : "connected"}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4">
-                  {KYNS.map((k, i) => {
-                    // Rows arrive in step with their orbs.
-                    const row = ease(
-                      Math.min(Math.max(kynIn * 1.5 - i * 0.16, 0), 1)
-                    );
-                    const isSource = transfer > 0.08 && i === 0;
-                    const isTarget = legOut > 0.2 && i === 1;
-                    const lit = isTarget || payoff > 0.15;
-                    return (
+                    <span
+                      className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
+                        isSource || lit ? "pulse-dot" : ""
+                      }`}
+                      style={{
+                        background: lit ? "var(--success)" : "var(--sky)",
+                        opacity: lit || isSource ? 1 : 0.45,
+                      }}
+                    />
+                    <div className="min-w-0">
                       <div
-                        key={k.name}
-                        className="flex items-baseline gap-2.5 pt-3"
+                        className="font-mono text-[9.5px] uppercase"
+                        style={{ letterSpacing: "0.16em", color: "var(--muted-fg)" }}
+                      >
+                        {k.name} · {k.domain}
+                      </div>
+                      <div
+                        className="mt-1.5 text-[12px] leading-snug"
                         style={{
-                          opacity: row,
-                          transform: `translateY(${(1 - row) * 8}px)`,
-                          borderTop: `1px solid ${
-                            lit
-                              ? "var(--success)"
-                              : isSource
-                                ? "var(--sky)"
-                                : "var(--rule-soft)"
-                          }`,
-                          transition:
-                            "border-color var(--dur-base) var(--ease-out-quart)",
+                          color: lit ? "var(--success)" : "var(--body-fg)",
+                          transition: "color var(--dur-base) var(--ease-out-quart)",
                         }}
                       >
-                        <span
-                          className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
-                            isSource || lit ? "pulse-dot" : ""
-                          }`}
-                          style={{
-                            background: lit
-                              ? "var(--success)"
-                              : isSource
-                                ? "var(--sky)"
-                                : "var(--sky)",
-                            opacity: lit || isSource ? 1 : 0.45,
-                          }}
-                        />
-                        <div className="min-w-0">
-                          <div
-                            className="font-mono text-[9.5px] uppercase"
-                            style={{
-                              letterSpacing: "0.16em",
-                              color: "var(--muted-fg)",
-                            }}
-                          >
-                            {k.name} · {k.domain}
-                          </div>
-                          <div
-                            className="mt-1.5 text-[12px] leading-snug"
-                            style={{
-                              color: lit ? "var(--success)" : "var(--body-fg)",
-                              transition:
-                                "color var(--dur-base) var(--ease-out-quart)",
-                            }}
-                          >
-                            {isTarget && k.okrAfter
-                              ? k.okrAfter
-                              : payoff > 0.15
-                                ? `${k.okr} · play applied`
-                                : k.okr}
-                          </div>
-                        </div>
+                        {isTarget && k.okrAfter
+                          ? k.okrAfter
+                          : payoff > 0.15
+                            ? `${k.okr} · play applied`
+                            : k.okr}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {still && (
-                <p
-                  className="mt-4 text-center font-mono text-[10px] uppercase"
-                  style={{ letterSpacing: "0.18em", color: "var(--muted-fg)" }}
-                >
-                  motion reduced — showing the complete system
-                </p>
-              )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

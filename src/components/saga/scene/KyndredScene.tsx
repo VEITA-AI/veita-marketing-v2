@@ -29,6 +29,8 @@ export type SceneProps = {
   transfer: number;
   /** The closing beat — every Kyn drawing down at once. */
   payoff: number;
+  /** Narrow viewports: drop in-scene labels and sit behind the story. */
+  compact?: boolean;
 };
 
 const KYNS = [
@@ -263,39 +265,60 @@ function Spoke({ from, to, amount }: { from: THREE.Vector3; to: THREE.Vector3; a
   );
 }
 
-/** Shockwaves from the hub — the visual full stop on the sequence. */
-function Flare({ amount }: { amount: number }) {
+/**
+ * The rest of the portfolio. A wider, sparser ring that fades up on the closing
+ * beat — the point being that the four you were shown are not the edge of it.
+ */
+function Beyond({ amount }: { amount: number }) {
   const g = useRef<THREE.Group>(null);
-  useFrame((state) => {
-    if (!g.current) return;
-    g.current.children.forEach((child, i) => {
-      const t = (state.clock.elapsedTime * 0.42 + i * 0.33) % 1;
-      const scale = 1.6 + t * 7.5;
-      child.scale.setScalar(scale);
-      const m = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
-      m.opacity = (1 - t) * 0.5 * amount;
-    });
+  const seeds = useMemo(
+    () =>
+      Array.from({ length: 9 }, (_, i) => {
+        const a = (i / 9) * Math.PI * 2 + 0.4;
+        const r = ORBIT * (1.75 + (i % 3) * 0.22);
+        return new THREE.Vector3(
+          Math.cos(a) * r,
+          Math.sin(a) * r * TILT * 1.1,
+          Math.sin(a) * r * 0.72
+        );
+      }),
+    []
+  );
+  useFrame((state, delta) => {
+    if (g.current) g.current.rotation.y += delta * 0.014;
   });
   return (
-    <group ref={g} rotation={[Math.PI / 2, 0, 0]}>
-      {[0, 1, 2].map((i) => (
-        <mesh key={i}>
-          <ringGeometry args={[0.96, 1, 96]} />
-          <meshBasicMaterial
-            color="#6fd0e8"
-            transparent
-            side={THREE.DoubleSide}
-            depthWrite={false}
-            blending={THREE.AdditiveBlending}
-            toneMapped={false}
-          />
-        </mesh>
+    <group ref={g}>
+      {seeds.map((pos, i) => (
+        <group key={i} position={pos}>
+          <mesh>
+            <sphereGeometry args={[0.34, 24, 24]} />
+            <meshStandardMaterial
+              color="#16304f"
+              emissive={new THREE.Color("#2a6ca8")}
+              emissiveIntensity={0.9 * amount}
+              roughness={0.4}
+              transparent
+              opacity={amount}
+            />
+          </mesh>
+          <mesh>
+            <sphereGeometry args={[0.5, 20, 20]} />
+            <meshBasicMaterial
+              color="#4f8fc8"
+              transparent
+              opacity={0.12 * amount}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+        </group>
       ))}
     </group>
   );
 }
 
-function Rig({ progress }: { progress: number }) {
+function Rig({ progress, shift }: { progress: number; shift: number }) {
   const { camera } = useThree();
   useFrame((state, delta) => {
     // Dolly from inside the cloud out to the whole system, then back in a touch.
@@ -303,18 +326,20 @@ function Rig({ progress }: { progress: number }) {
       ? THREE.MathUtils.lerp(4.2, 16.5, easeOut(progress / 0.3))
       : progress < 0.8
         ? THREE.MathUtils.lerp(16.5, 13.8, easeOut((progress - 0.3) / 0.5))
-        : THREE.MathUtils.lerp(13.8, 18.5, easeOut((progress - 0.8) / 0.2));
+        : THREE.MathUtils.lerp(13.8, 25, easeOut((progress - 0.8) / 0.2));
     const y = THREE.MathUtils.lerp(0.4, 3.4, easeOut(progress));
     // A little breathing on top so the camera is never perfectly still.
     const drift = Math.sin(state.clock.elapsedTime * 0.25) * 0.22;
     camera.position.lerp(new THREE.Vector3(drift, y, z), 1 - Math.pow(0.001, delta));
-    camera.lookAt(0, 0, 0);
+    // Aim left of origin so the system sits right of frame centre.
+    camera.lookAt(-THREE.MathUtils.lerp(0, shift, easeOut(progress * 1.4)), 0, 0);
   });
   return null;
 }
 
 function Scene(props: SceneProps) {
-  const { progress, core, kynIn, linkIn, meta, transfer, payoff } = props;
+  const { progress, core, kynIn, linkIn, meta, transfer, payoff, compact } =
+    props;
   const spin = THREE.MathUtils.lerp(-0.28, 0.34, progress);
   const positions = KYNS.map((_, i) => nodePosition(i, spin));
 
@@ -328,7 +353,7 @@ function Scene(props: SceneProps) {
       <pointLight position={[6, 6, 8]} intensity={9} color="#8fc0ea" distance={30} />
 
       <Core amount={core} energy={Math.max(meta, payoff)} />
-      {payoff > 0.01 && <Flare amount={payoff} />}
+      {payoff > 0.01 && <Beyond amount={payoff} />}
 
       {positions.map((pos, i) => {
         const appear = easeOut(Math.min(Math.max(kynIn * 1.5 - i * 0.16, 0), 1));
@@ -364,6 +389,7 @@ function Scene(props: SceneProps) {
               </>
             )}
             <Node position={pos} amount={appear} highlight={highlight} />
+            {!compact && (
             <Html
               position={[pos.x * 1.24, pos.y * 1.24 - 0.85, pos.z * 1.24]}
               center
@@ -386,10 +412,12 @@ function Scene(props: SceneProps) {
                 {KYNS[i].name}
               </div>
             </Html>
+            )}
           </group>
         );
       })}
 
+      {!compact && (
       <Html
         position={[0, -3.1, 0]}
         center
@@ -422,8 +450,9 @@ function Scene(props: SceneProps) {
           </div>
         </div>
       </Html>
+      )}
 
-      <Rig progress={progress} />
+      <Rig progress={progress} shift={compact ? 0 : 3.1} />
 
       <EffectComposer>
         <Bloom
