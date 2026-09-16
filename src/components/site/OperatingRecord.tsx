@@ -60,7 +60,7 @@ export function OperatingRecord({
               borderBottom: "1px solid var(--border)",
               animation:
                 i === shown - 1 && shown > 4
-                  ? "record-in 0.5s ease-out"
+                  ? "record-in var(--dur-medium) var(--ease-out-expo), record-flash 1.4s var(--ease-out-quart)"
                   : undefined,
             }}
           >

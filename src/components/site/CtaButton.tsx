@@ -17,7 +17,7 @@ export function CtaButton({
   return (
     <Link
       href={CTA_HREF}
-      className={`${MONO} group inline-flex items-center gap-2.5 px-6 py-3.5 text-[11px] ${className}`}
+      className={`${MONO} sheen group inline-flex items-center gap-2.5 px-6 py-3.5 text-[11px] ${className}`}
       style={{
         background: "var(--ember)",
         color: "var(--navy-deep)",

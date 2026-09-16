@@ -211,6 +211,8 @@
   height: 130%;
   z-index: -2;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 96%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 96%);
   background:
     radial-gradient(
       52rem 38rem at 78% -8%,
@@ -361,6 +363,128 @@
   }
 }
 
+/* ---- Headline word rise ----
+   Words arrive on a fast wave (30ms apart) so it reads as one gesture. */
+.word-rise > span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.5em);
+  animation: word-rise var(--dur-slow) var(--ease-out-expo) forwards;
+  animation-delay: calc(var(--i) * 32ms);
+}
+@keyframes word-rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- The sheen on the one filled action ---- */
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translateX(-120%) skewX(-18deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.42),
+    transparent
+  );
+}
+.sheen:hover::after {
+  animation: sheen-sweep 0.7s var(--ease-out-quart);
+}
+@keyframes sheen-sweep {
+  to {
+    transform: translateX(120%) skewX(-18deg);
+  }
+}
+
+/* ---- The raking light drifts rather than sitting still ---- */
+.sweep::before {
+  animation: sweep-drift 14s ease-in-out infinite alternate;
+}
+@keyframes sweep-drift {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+/* ---- Section thread ----
+   A short vertical hairline between sections with a signal travelling down it,
+   so the page reads as one continuous system rather than stacked blocks. */
+.thread {
+  position: relative;
+  width: 1px;
+  height: 84px;
+  margin: 0 auto;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--rule-strong) 30%,
+    var(--rule-strong) 70%,
+    transparent
+  );
+}
+.thread::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  height: 5px;
+  width: 5px;
+  border-radius: 999px;
+  background: var(--success);
+  box-shadow: 0 0 8px 1px rgba(58, 172, 204, 0.75);
+  animation: thread-travel 3.4s var(--ease-out-quart) infinite;
+}
+@keyframes thread-travel {
+  0% {
+    top: -6px;
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    top: 84px;
+    opacity: 0;
+  }
+}
+
+/* ---- Newest operating-record entry lands lit, then settles ---- */
+@keyframes record-flash {
+  0% {
+    background: rgba(58, 172, 204, 0.16);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word-rise > span {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .thread::after,
+  .sweep::before {
+    animation: none;
+  }
+}
+
 /* ---- Operating record stream ---- */
 @keyframes record-in {
   from { opacity: 0; transform: translateY(-4px); }
@@ -387,54 +511,62 @@
   }
 }
 
-/* ---- Kyndred loop diagram (Saga) ---- */
+/* ---- Kyndred loop diagram ----
+   The signature graphic. Depth comes from layered glow and gradient strokes;
+   the idle state breathes so the system reads as running, not drawn. */
+
 .kl-root .kl-track {
-  stroke: rgba(143, 192, 234, 0.16);
-  stroke-width: 2px;
+  stroke: url(#kl-spoke);
+  stroke-width: 1.5px;
   fill: none;
-  transition: stroke 0.25s;
+  transition: stroke-opacity var(--dur-base) var(--ease-out-quart);
+  stroke-opacity: 0.55;
 }
+.kl-root .kl-spoke.kl-on .kl-track {
+  stroke-opacity: 1;
+}
+
 .kl-root .kl-dot {
-  opacity: 0.85;
-  transition: opacity 0.25s;
+  transition: opacity var(--dur-base) var(--ease-out-quart);
 }
 .kl-root .kl-dot-in {
   fill: var(--success);
+  filter: drop-shadow(0 0 4px rgba(58, 172, 204, 0.9));
 }
 .kl-root .kl-dot-out {
   fill: var(--sky);
-}
-.kl-root .kl-spoke.kl-on .kl-track {
-  stroke: rgba(143, 192, 234, 0.4);
+  filter: drop-shadow(0 0 4px rgba(143, 192, 234, 0.85));
 }
 .kl-root .kl-spoke.kl-on .kl-dot {
   opacity: 1;
 }
+
+/* Orbit rings — two counter-rotating dashed rings per node. */
 .kl-root .kl-ring {
   fill: none;
-  stroke: rgba(143, 192, 234, 0.3);
-  stroke-width: 2.5px;
-  stroke-dasharray: 4 9;
+  stroke: rgba(143, 192, 234, 0.34);
+  stroke-width: 1.4px;
+  stroke-dasharray: 3 8;
   stroke-linecap: round;
   transform-box: fill-box;
   transform-origin: 50%;
-  transition: stroke 0.25s, opacity 0.25s;
-  animation: kl-spin 26s linear infinite;
+  transition: stroke var(--dur-base) var(--ease-out-quart);
+  animation: kl-spin 34s linear infinite;
 }
 .kl-root .kl-ring-core {
-  stroke: var(--success);
-  stroke-width: 3px;
-  stroke-dasharray: 5 8;
-  animation-duration: 34s;
+  stroke: rgba(58, 172, 204, 0.62);
+  stroke-width: 1.8px;
+  stroke-dasharray: 4 9;
+  animation-duration: 46s;
 }
 .kl-root .kl-ring2 {
   fill: none;
-  stroke: var(--sky);
-  stroke-width: 2.5px;
-  stroke-dasharray: 3 10;
+  stroke: rgba(143, 192, 234, 0.4);
+  stroke-width: 1.4px;
+  stroke-dasharray: 2 11;
   transform-box: fill-box;
   transform-origin: 50%;
-  animation: kl-spin-rev 30s linear infinite;
+  animation: kl-spin-rev 38s linear infinite;
 }
 @keyframes kl-spin {
   to {
@@ -446,51 +578,108 @@
     transform: rotate(-360deg);
   }
 }
+
+/* Discs sit on a gradient so they read as objects, not flat circles. */
 .kl-root .kl-disc {
-  fill: #16283f;
-  stroke: var(--border-active);
+  fill: url(#kl-disc);
+  stroke: rgba(143, 192, 234, 0.22);
+  stroke-width: 1px;
+  transition: stroke var(--dur-base) var(--ease-out-quart);
 }
 .kl-root .kl-disc-core {
-  fill: var(--navy-deep);
+  fill: url(#kl-core);
+  stroke: rgba(58, 172, 204, 0.4);
 }
+
+/* The core breathes — the one idle motion that says the system is live. */
+.kl-root .kl-core-breath {
+  transform-box: fill-box;
+  transform-origin: 50%;
+  animation: kl-breath 5.5s var(--ease-out-quart) infinite;
+}
+@keyframes kl-breath {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+/* Nodes drift very slightly, out of phase, so the orbit never looks frozen. */
+.kl-root .kl-node {
+  transform-box: fill-box;
+  transform-origin: 50%;
+  animation: kl-drift 9s ease-in-out infinite;
+  animation-delay: var(--amp-delay, 0s);
+}
+@keyframes kl-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
 .kl-root .kl-label {
   font-family: "Bricolage Grotesque", sans-serif;
   fill: var(--foreground);
   text-anchor: middle;
   dominant-baseline: central;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 .kl-root .kl-sub {
-  font-family: "Schibsted Grotesk", system-ui, sans-serif;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   fill: var(--muted-fg);
   text-anchor: middle;
   dominant-baseline: central;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
+
 .kl-root .kl-node,
 .kl-root .kl-core {
   cursor: pointer;
   outline: none;
-  transition: opacity 0.25s;
+  transition: opacity var(--dur-base) var(--ease-out-quart);
 }
+
+/* Hover: the focused loop brightens, everything else recedes. */
 .kl-root svg.kl-dim:not(.kl-core-active) .kl-node:not(.kl-on),
 .kl-root svg.kl-dim:not(.kl-core-active) .kl-spoke:not(.kl-on) {
-  opacity: 0.3;
+  opacity: 0.22;
 }
 .kl-root svg.kl-dim:not(.kl-core-active) .kl-core:not(.kl-on) {
-  opacity: 0.45;
+  opacity: 0.4;
 }
+.kl-root .kl-node.kl-on .kl-ring {
+  stroke: var(--sky);
+}
+.kl-root .kl-node.kl-on .kl-disc {
+  stroke: rgba(143, 192, 234, 0.55);
+}
+.kl-root .kl-node.kl-on .kl-halo,
+.kl-root .kl-core.kl-on .kl-halo {
+  opacity: 1;
+}
+.kl-root .kl-halo {
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out-quart);
+}
+
+/* Centre hover: every node pulses in sympathy. */
 .kl-root svg.kl-core-active .kl-node {
-  transform-box: fill-box;
-  transform-origin: 50%;
-  animation: kl-amp 1.5s ease-in-out infinite;
+  animation: kl-amp 1.9s var(--ease-out-quart) infinite;
   animation-delay: var(--amp-delay, 0s);
 }
 .kl-root svg.kl-core-active .kl-node .kl-ring {
   stroke: var(--sky);
-  opacity: 1;
-}
-.kl-root svg.kl-core-active .kl-disc-core {
-  filter: drop-shadow(0 0 12px rgba(143, 192, 234, 0.45));
 }
 @keyframes kl-amp {
   0%,
@@ -498,22 +687,25 @@
     transform: scale(1);
   }
   45% {
-    transform: scale(1.07);
+    transform: scale(1.06);
   }
 }
+
 .kl-root .kl-tip {
   --tip-fg: #93a5b4;
-  background: #152a45;
-  border: 1px solid var(--border-active);
-  box-shadow: 0 16px 34px rgba(3, 10, 22, 0.5);
-  animation: kl-fade-in 0.18s ease-out;
+  background: linear-gradient(168deg, #16283f, #0d1c33);
+  border: 1px solid rgba(143, 192, 234, 0.26);
+  box-shadow: 0 24px 48px -24px rgba(3, 10, 22, 0.95);
+  animation: kl-fade-in var(--dur-base) var(--ease-out-quart);
 }
 @keyframes kl-fade-in {
   from {
     opacity: 0;
+    transform: translate(-50%, calc(-50% + 4px));
   }
   to {
     opacity: 1;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -528,6 +720,8 @@
   }
   .kl-root .kl-ring,
   .kl-root .kl-ring2,
+  .kl-root .kl-node,
+  .kl-root .kl-core-breath,
   .kl-root svg.kl-core-active .kl-node {
     animation: none;
   }

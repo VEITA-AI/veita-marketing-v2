@@ -88,6 +88,49 @@ export function KyndredLoop() {
           role="img"
           aria-label="A central Kyndred loop surrounded by orbiting Kyn loops, each connected by a two-way signal exchange."
         >
+          <defs>
+            {/* Spokes brighten toward the core. Anchored in user space — an
+                objectBoundingBox gradient collapses on axis-aligned lines. */}
+            <radialGradient
+              id="kl-spoke"
+              gradientUnits="userSpaceOnUse"
+              cx={CX}
+              cy={CY}
+              r={ORBIT}
+            >
+              <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.85" />
+              <stop offset="60%" stopColor="#5f9fd6" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#367bc0" stopOpacity="0.28" />
+            </radialGradient>
+            {/* Discs are lit from upper-left so they read as objects, not fills. */}
+            <radialGradient id="kl-disc" cx="36%" cy="28%" r="84%">
+              <stop offset="0%" stopColor="#1e3a5c" />
+              <stop offset="100%" stopColor="#111f36" />
+            </radialGradient>
+            <radialGradient id="kl-core" cx="38%" cy="30%" r="80%">
+              <stop offset="0%" stopColor="#17304f" />
+              <stop offset="100%" stopColor="#0a1730" />
+            </radialGradient>
+            <radialGradient id="kl-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#3aaccc" stopOpacity="0.42" />
+              <stop offset="55%" stopColor="#367bc0" stopOpacity="0.14" />
+              <stop offset="100%" stopColor="#367bc0" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="kl-node-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#8fc0ea" stopOpacity="0.34" />
+              <stop offset="100%" stopColor="#8fc0ea" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
+          {/* Core glow, behind everything. */}
+          <circle
+            cx={CX}
+            cy={CY}
+            r={CORE_R * 2.4}
+            fill="url(#kl-glow)"
+            className="kl-core-breath"
+          />
+
           <g>
             {nodes.map((node) => (
               <g
@@ -137,6 +180,13 @@ export function KyndredLoop() {
                 <circle
                   cx={node.x}
                   cy={node.y}
+                  r={NODE_R * 2}
+                  fill="url(#kl-node-glow)"
+                  className="kl-halo"
+                />
+                <circle
+                  cx={node.x}
+                  cy={node.y}
                   r={NODE_R + 6}
                   className="kl-ring"
                 />
@@ -146,9 +196,9 @@ export function KyndredLoop() {
                 </text>
                 <text
                   x={node.x}
-                  y={node.y + 18}
+                  y={node.y + 19}
                   className="kl-sub"
-                  fontSize={11}
+                  fontSize={8.5}
                 >
                   {node.domain}
                 </text>
@@ -171,6 +221,13 @@ export function KyndredLoop() {
               onFocus={() => setActive("core")}
               onBlur={() => setActive(null)}
             >
+              <circle
+                cx={CX}
+                cy={CY}
+                r={CORE_R * 1.7}
+                fill="url(#kl-node-glow)"
+                className="kl-halo"
+              />
               <circle cx={CX} cy={CY} r={CORE_R + 8} className="kl-ring2" />
               <circle
                 cx={CX}
@@ -187,7 +244,7 @@ export function KyndredLoop() {
               <text x={CX} y={CY - 8} className="kl-label" fontSize={22}>
                 Kyndred
               </text>
-              <text x={CX} y={CY + 18} className="kl-sub" fontSize={12}>
+              <text x={CX} y={CY + 21} className="kl-sub" fontSize={9.5}>
                 shared intelligence
               </text>
               <circle cx={CX} cy={CY} r={CORE_R + 6} fill="transparent" />

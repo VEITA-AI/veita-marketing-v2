@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { Reveal } from "./Reveal";
 import { CtaButton, GhostLink } from "./CtaButton";
@@ -21,7 +22,7 @@ const RULE_STRONG = "1px solid var(--rule-strong)";
 export const DISPLAY = {
   fontWeight: 500,
   letterSpacing: "-0.042em",
-  lineHeight: 1.03,
+  lineHeight: 1.1,
 } as const;
 
 export function Bleed({
@@ -109,12 +110,59 @@ export function Mark({ children }: { children: string }) {
   return (
     <span
       style={{
-        boxShadow: "inset 0 -0.14em 0 0 var(--ember)",
-        paddingBottom: "0.02em",
+        textDecorationLine: "underline",
+        textDecorationColor: "var(--ember)",
+        textDecorationThickness: "0.075em",
+        textUnderlineOffset: "0.13em",
+        textDecorationSkipInk: "none",
       }}
     >
       {children}
     </span>
+  );
+}
+
+/**
+ * Splits a headline into words so they can arrive on a stagger. The marked word
+ * keeps its accent rule. Rendered as one text node per word, so the full string
+ * still reads normally to screen readers and to text extraction.
+ */
+export function Headline({
+  text,
+  mark,
+  className = "",
+  style,
+}: {
+  text: string;
+  mark?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const words = text.split(" ");
+  return (
+    <span className={`word-rise ${className}`} style={style}>
+      {words.map((word, i) => {
+        const isMark =
+          !!mark && word.replace(/[^A-Za-z-]/g, "") === mark.replace(/[^A-Za-z-]/g, "");
+        return (
+          <Fragment key={`${word}-${i}`}>
+            <span style={{ "--i": i } as React.CSSProperties}>
+              {isMark ? <Mark>{word}</Mark> : word}
+            </span>
+            {i < words.length - 1 ? " " : null}
+          </Fragment>
+        );
+      })}
+    </span>
+  );
+}
+
+/** A section-to-section thread with a signal travelling down it. */
+export function Thread() {
+  return (
+    <div aria-hidden="true" className="py-2">
+      <div className="thread" />
+    </div>
   );
 }
 
@@ -141,17 +189,19 @@ export function SectionHead({
   return (
     <Reveal>
       <div className="md:pl-[2.5rem]">
-        <div className="flex items-baseline justify-between gap-6 pb-5">
-        {title ? (
-          <h2
-            className="font-display"
-            style={{ ...DISPLAY, fontSize: "clamp(1.9rem, 1rem + 2.2vw, 3rem)" }}
-          >
-            {title}
-          </h2>
-        ) : (
-          <span />
-        )}
+        <div
+          className={`flex items-baseline gap-6 pb-5 ${
+            title ? "justify-between" : ""
+          }`}
+        >
+          {title && (
+            <h2
+              className="font-display"
+              style={{ ...DISPLAY, fontSize: "clamp(1.9rem, 1rem + 2.2vw, 3rem)" }}
+            >
+              {title}
+            </h2>
+          )}
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>
         <div className="rule-fade" />
@@ -180,13 +230,9 @@ export function PageHero({
   cta?: boolean;
   aside?: React.ReactNode;
 }) {
-  const [before, after] = mark && title.includes(mark)
-    ? [title.slice(0, title.indexOf(mark)), title.slice(title.indexOf(mark) + mark.length)]
-    : [title, ""];
-
   return (
     <section className="atmos">
-      <div className="mx-auto w-full max-w-[1240px] px-6 pb-20 pt-24 md:px-10 md:pb-24 md:pt-32">
+      <div className="mx-auto w-full max-w-[1240px] px-6 pb-14 pt-24 md:px-10 md:pb-16 md:pt-32">
       <div className={aside ? "grid gap-14 lg:grid-cols-12" : ""}>
         <div className={aside ? "lg:col-span-7" : ""}>
           <Reveal>
@@ -200,15 +246,7 @@ export function PageHero({
                 fontSize: "clamp(2.25rem, 1rem + 4.2vw, 4.25rem)",
               }}
             >
-              {mark && after ? (
-                <>
-                  {before}
-                  <Mark>{mark}</Mark>
-                  {after}
-                </>
-              ) : (
-                title
-              )}
+              <Headline text={title} mark={mark} />
             </h1>
           </Reveal>
           <Reveal delay={160}>
@@ -289,7 +327,7 @@ export function IndexList({ items }: { items: IndexItem[] }) {
         );
 
         const rowClass =
-          "row-sweep group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-8 gap-y-3 px-3 py-8 -mx-3 md:grid-cols-[2.5rem_13rem_1fr_1rem] lg:grid-cols-[2.5rem_13rem_1fr_10.5rem_1rem]";
+          "row-sweep group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-8 gap-y-3 px-3 py-8 -mx-3 md:grid-cols-[2.5rem_15rem_1fr_1rem] lg:grid-cols-[2.5rem_15rem_1fr_10rem_1rem]";
 
         return (
           <Reveal key={item.name} delay={i * 50}>
@@ -388,10 +426,6 @@ export function ClosingSection({
   title: string;
   mark?: string;
 }) {
-  const [before, after] = mark && title.includes(mark)
-    ? [title.slice(0, title.indexOf(mark)), title.slice(title.indexOf(mark) + mark.length)]
-    : [title, ""];
-
   return (
     <Band className="sweep py-24 md:py-32">
       <div className="grid gap-12 lg:grid-cols-12">
@@ -403,15 +437,7 @@ export function ClosingSection({
               fontSize: "clamp(2rem, 1rem + 2.6vw, 3.25rem)",
             }}
           >
-            {mark && after ? (
-              <>
-                {before}
-                <Mark>{mark}</Mark>
-                {after}
-              </>
-            ) : (
-              title
-            )}
+            <Headline text={title} mark={mark} />
           </h2>
         </Reveal>
         <Reveal delay={80} className="lg:col-span-5">

@@ -22,7 +22,7 @@ export default function ContactPage() {
         cta
       />
 
-      <Bleed className="py-20 md:py-24">
+      <Bleed className="pb-20 pt-14 md:pb-24 md:pt-16">
         <SectionHead eyebrow="the other way" />
         <Reveal>
           <a

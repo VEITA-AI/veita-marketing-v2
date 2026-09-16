@@ -10,6 +10,7 @@ import {
   Eyebrow,
   Mark,
   SectionHead,
+  Thread,
   IndexList,
   SplitPair,
   ClosingSection,
@@ -143,7 +144,11 @@ export default function Home() {
         </Reveal>
       </section>
 
-      <Bleed className="pt-28 md:pt-36">
+      <Bleed className="pt-20 md:pt-24">
+        <Thread />
+      </Bleed>
+
+      <Bleed className="pt-10 md:pt-12">
         <SectionHead eyebrow="the architecture" title="Four elements, one system" />
         <IndexList items={ELEMENTS} />
       </Bleed>
