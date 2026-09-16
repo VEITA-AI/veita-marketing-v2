@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
@@ -136,40 +136,90 @@ function Core({ amount, energy }: { amount: number; energy: number }) {
   );
 }
 
-/** One company. An emissive orb with a soft shell so bloom haloes it. */
-function Node({
+/**
+ * A Kyn, drawn as woven knots rather than a sphere.
+ *
+ * Each company is two interlocking closed curves — the functions Saga runs,
+ * bound into one form. Torus knots rather than free-form splines: random
+ * control points read as scribble, where a knot's regularity reads as
+ * structure. The (p, q) pair is fixed per Kyn, so each has its own signature.
+ */
+const KNOTS: [number, number][] = [
+  [2, 3],
+  [3, 4],
+  [3, 5],
+  [5, 2],
+];
+
+function KynForm({
   position,
   amount,
   highlight,
+  seed,
 }: {
   position: THREE.Vector3;
   amount: number;
   highlight: number;
+  seed: number;
 }) {
-  const g = useRef<THREE.Group>(null);
-  useFrame(() => {
-    if (!g.current) return;
-    g.current.position.copy(position);
-    g.current.scale.setScalar(amount * (0.85 + highlight * 0.25));
+  const group = useRef<THREE.Group>(null);
+  const inner = useRef<THREE.Group>(null);
+
+  const strands = useMemo(() => {
+    const [p, q] = KNOTS[seed % KNOTS.length];
+    return [
+      {
+        geometry: new THREE.TorusKnotGeometry(0.44, 0.032, 220, 10, p, q),
+        tilt: new THREE.Euler(0.4 * seed, 0.9 * seed, 0.2 * seed),
+      },
+      {
+        geometry: new THREE.TorusKnotGeometry(0.3, 0.02, 180, 8, q, p),
+        tilt: new THREE.Euler(1.1 * seed, 0.3 * seed, 0.8 * seed),
+      },
+    ];
+  }, [seed]);
+
+  useEffect(
+    () => () => strands.forEach((st) => st.geometry.dispose()),
+    [strands]
+  );
+
+  useFrame((state, delta) => {
+    if (group.current) {
+      group.current.position.copy(position);
+      group.current.scale.setScalar(amount * (0.92 + highlight * 0.16));
+    }
+    if (inner.current) {
+      inner.current.rotation.y += delta * 0.2;
+      inner.current.rotation.z += delta * 0.07;
+    }
   });
+
+  const emissive = highlight > 0.5 ? "#5fd4ea" : "#4a93d8";
+
   return (
-    <group ref={g}>
+    <group ref={group}>
+      <group ref={inner}>
+        {strands.map((st, k) => (
+          <mesh key={k} geometry={st.geometry} rotation={st.tilt}>
+            <meshStandardMaterial
+              color="#0f2440"
+              emissive={new THREE.Color(emissive)}
+              emissiveIntensity={(k === 0 ? 1.5 : 1.0) + highlight * 2.4}
+              roughness={0.25}
+              metalness={0.45}
+              toneMapped={false}
+            />
+          </mesh>
+        ))}
+      </group>
+      {/* Just enough shell for bloom to catch and for distance to dim. */}
       <mesh>
-        <sphereGeometry args={[0.62, 40, 40]} />
-        <meshStandardMaterial
-          color="#16304f"
-          emissive={new THREE.Color(highlight > 0.5 ? "#3aaccc" : "#2a6ca8")}
-          emissiveIntensity={0.7 + highlight * 1.6}
-          roughness={0.35}
-          metalness={0.15}
-        />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[0.86, 32, 32]} />
+        <sphereGeometry args={[0.62, 24, 24]} />
         <meshBasicMaterial
           color={highlight > 0.5 ? "#6fd0e8" : "#4f8fc8"}
           transparent
-          opacity={0.14 + highlight * 0.2}
+          opacity={0.07 + highlight * 0.13}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -323,10 +373,10 @@ function Rig({ progress, shift }: { progress: number; shift: number }) {
   useFrame((state, delta) => {
     // Dolly from inside the cloud out to the whole system, then back in a touch.
     const z = progress < 0.3
-      ? THREE.MathUtils.lerp(4.2, 16.5, easeOut(progress / 0.3))
+      ? THREE.MathUtils.lerp(4.2, 17, easeOut(progress / 0.3))
       : progress < 0.8
-        ? THREE.MathUtils.lerp(16.5, 13.8, easeOut((progress - 0.3) / 0.5))
-        : THREE.MathUtils.lerp(13.8, 25, easeOut((progress - 0.8) / 0.2));
+        ? THREE.MathUtils.lerp(17, 15.6, easeOut((progress - 0.3) / 0.5))
+        : THREE.MathUtils.lerp(15.6, 26, easeOut((progress - 0.8) / 0.2));
     const y = THREE.MathUtils.lerp(0.4, 3.4, easeOut(progress));
     // A little breathing on top so the camera is never perfectly still.
     const drift = Math.sin(state.clock.elapsedTime * 0.25) * 0.22;
@@ -388,7 +438,12 @@ function Scene(props: SceneProps) {
                 />
               </>
             )}
-            <Node position={pos} amount={appear} highlight={highlight} />
+            <KynForm
+              position={pos}
+              amount={appear}
+              highlight={highlight}
+              seed={i + 1}
+            />
             {!compact && (
             <Html
               position={[pos.x * 1.24, pos.y * 1.24 - 0.85, pos.z * 1.24]}
@@ -452,7 +507,7 @@ function Scene(props: SceneProps) {
       </Html>
       )}
 
-      <Rig progress={progress} shift={compact ? 0 : 3.1} />
+      <Rig progress={progress} shift={compact ? 0 : 2.3} />
 
       <EffectComposer>
         <Bloom
