@@ -231,8 +231,8 @@ export function PageHero({
   aside?: React.ReactNode;
 }) {
   return (
-    <section className="atmos">
-      <div className="mx-auto w-full max-w-[1240px] px-6 pb-14 pt-24 md:px-10 md:pb-16 md:pt-32">
+    <section className="atmos dot-grid">
+      <div className="mx-auto w-full max-w-[1240px] px-6 pb-14 pt-28 md:px-10 md:pb-16 md:pt-32">
       <div className={aside ? "grid gap-14 lg:grid-cols-12" : ""}>
         <div className={aside ? "lg:col-span-7" : ""}>
           <Reveal>
@@ -427,7 +427,7 @@ export function ClosingSection({
   mark?: string;
 }) {
   return (
-    <Band className="sweep py-24 md:py-32">
+    <Band className="riser sweep py-24 md:py-32">
       <div className="grid gap-12 lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <h2

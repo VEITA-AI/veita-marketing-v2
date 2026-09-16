@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
 import { CtaButton, GhostLink } from "@/components/site/CtaButton";
-import { KyndredLoop } from "@/components/saga/KyndredLoop";
+import { CompoundingSequence } from "@/components/saga/CompoundingSequence";
 import { Stat } from "@/components/site/Stat";
 import { OperatingRecord } from "@/components/site/OperatingRecord";
 import {
@@ -47,8 +47,10 @@ const ELEMENTS = [
 ];
 
 const PROOF = [
-  { name: "PreCognise", note: "verification-first talent marketplace" },
-  { name: "EasyAudit", note: "agentic compliance · 50+ customers" },
+  {
+    name: "PreCognise",
+    note: "verification-first talent marketplace · in pilot",
+  },
 ];
 
 const RUNS = [
@@ -79,8 +81,13 @@ export default function Home() {
   return (
     <SiteLayout>
       {/* The first screen gets the room it needs — nothing competes with the claim. */}
-      <section className="atmos">
-        <div className="mx-auto w-full max-w-[1240px] px-6 pb-28 pt-28 md:px-10 md:pb-36 md:pt-44">
+      <section className="atmos dot-grid">
+        <div aria-hidden="true" className="sculpt">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="mx-auto w-full max-w-[1240px] px-6 pb-28 pt-24 md:px-10 md:pb-36 md:pt-40">
           <Reveal>
             <Link
               href="/saga"
@@ -167,47 +174,21 @@ export default function Home() {
           </Reveal>
         </div>
 
-        {/* The anchoring artifact, lifted off the ground — the move Linear,
-            Railway and Cursor all make with a product shot. */}
-        <Reveal delay={240}>
-          <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
-            <div className="panel-lift sweep px-4 py-12 md:px-10 md:py-16">
-              <div className="mb-10 flex flex-col gap-6 px-2 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <Eyebrow>what compounds</Eyebrow>
-                  <h2
-                    className="mt-5 max-w-[20ch] font-display"
-                    style={{
-                      ...DISPLAY,
-                      fontSize: "clamp(1.75rem, 1rem + 1.9vw, 2.6rem)",
-                    }}
-                  >
-                    Each one makes the next <Mark>cheaper</Mark> to build.
-                  </h2>
-                </div>
-                <p
-                  className="max-w-[32ch] text-[14px] leading-[1.6]"
-                  style={{ color: "var(--body-fg)" }}
-                >
-                  Every Kyn contributes operational signal back to the platform.
-                  It travels inward; shared capability travels back out.
-                </p>
-              </div>
-              <KyndredLoop />
-            </div>
-          </div>
-        </Reveal>
+      </section>
+
+      {/* The system, built up one beat at a time as you scroll. */}
+      <section className="riser" style={{ background: "var(--surface)" }}>
+        <CompoundingSequence />
       </section>
 
       {/* Real figures, counted up. Every one is sourced from a page below. */}
       <Bleed className="pt-24 md:pt-28">
         <Reveal>
           <div
-            className="grid grid-cols-2 gap-x-10 gap-y-12 pt-10 md:grid-cols-4"
+            className="grid grid-cols-2 gap-x-10 gap-y-12 pt-10 md:grid-cols-3"
             style={{ borderTop: "1px solid var(--rule-strong)" }}
           >
-            <Stat value={2} label="Origin Kyn live" />
-            <Stat value={50} suffix="+" label="EasyAudit customers" />
+            <Stat value={4} label="Elements, one system" />
             <Stat value={4} label="Functions Saga runs" />
             <Stat value={2} label="Ways in" />
           </div>
@@ -215,7 +196,7 @@ export default function Home() {
       </Bleed>
 
       {/* What the operating layer actually does, against the record. */}
-      <FullBleed className="sweep mt-28 py-24 md:mt-32 md:py-32">
+      <FullBleed className="riser sweep mt-28 py-24 md:mt-32 md:py-32">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
           <div className="grid gap-14 lg:grid-cols-12">
             <div className="lg:col-span-6">
@@ -283,7 +264,7 @@ export default function Home() {
         <IndexList items={ELEMENTS} />
       </Bleed>
 
-      <FullBleed className="mt-28 py-24 md:mt-36 md:py-32">
+      <FullBleed className="riser mt-28 py-24 md:mt-36 md:py-32">
         <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
           <SectionHead eyebrow="two doors" title="One system. Two ways in." />
           <SplitPair items={DOORS} />

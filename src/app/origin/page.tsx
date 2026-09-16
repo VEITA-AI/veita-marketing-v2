@@ -40,12 +40,6 @@ const PROOF = [
     body: "Verification-first talent marketplace.",
     note: "In pilot — Work-Integrated Learning verification stream",
   },
-  {
-    name: "EasyAudit",
-    status: "live",
-    body: "Agentic compliance platform — SOC 2, ISO 27001/42001, HIPAA, GDPR.",
-    note: "50+ customers",
-  },
 ];
 
 const MONO = "font-mono uppercase tracking-[0.16em]";
@@ -68,7 +62,7 @@ export default function OriginPage() {
 
       <Bleed className="py-20 md:py-24">
         <SectionHead eyebrow="proof points" title="Origin Kyn already operating" />
-        <div className="grid md:grid-cols-2">
+        <div className="grid md:grid-cols-2 lg:grid-cols-2">
           {PROOF.map((point, i) => (
             <Reveal key={point.name} delay={i * 90}>
               <div

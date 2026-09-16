@@ -29,16 +29,23 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header
-        className="sticky top-0 z-40"
-        style={{
-          background: scrolled ? "rgba(11,26,51,0.92)" : "var(--background)",
-          backdropFilter: scrolled ? "blur(12px)" : undefined,
-          borderBottom: RULE_SOFT,
-          transition: "background var(--dur-base) var(--ease-out-quart)",
-        }}
-      >
-        <nav className={`${SHELL} flex items-center gap-6 py-5`}>
+      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-5">
+        <nav
+          className="mx-auto flex w-full max-w-[1240px] items-center gap-6 px-5 py-3 md:px-6"
+          style={{
+            borderRadius: 999,
+            border: "1px solid var(--rule-soft)",
+            background: scrolled
+              ? "rgba(11,26,51,0.82)"
+              : "rgba(22,34,48,0.55)",
+            backdropFilter: "blur(14px)",
+            boxShadow: scrolled
+              ? "0 18px 40px -28px rgba(3,10,22,0.9)"
+              : "none",
+            transition:
+              "background var(--dur-base) var(--ease-out-quart), box-shadow var(--dur-base) var(--ease-out-quart)",
+          }}
+        >
           <Link href="/" aria-label="Veita home" className="leading-none">
             <VeitaLogo size={19} />
           </Link>
@@ -83,8 +90,13 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
         {menuOpen && (
           <div
-            className={`${SHELL} bg-background py-4 lg:hidden`}
-            style={{ borderTop: RULE_SOFT }}
+            className="mx-auto mt-3 w-full max-w-[1240px] px-6 py-4 lg:hidden"
+            style={{
+              borderRadius: 20,
+              border: "1px solid var(--rule-soft)",
+              background: "rgba(11,26,51,0.94)",
+              backdropFilter: "blur(14px)",
+            }}
           >
             <div className="flex flex-col">
               {[...NAV_ITEMS, { href: "/contact", label: "Contact" }].map(
