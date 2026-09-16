@@ -263,16 +263,19 @@
   );
 }
 
-/* Headline set in a vertical tonal fade — bright at the top, settling down. */
+/* Headline set in a vertical tonal fade — bright at the top, settling down.
+   Done with a mask rather than background-clip:text. The word-rise spans
+   animate `transform`, which gives each word its own stacking context, and a
+   clipped background never reaches text painted in a separate layer — the
+   headings render completely invisible. A mask modulates the element's
+   rendered alpha, descendants included, so it survives that. */
 .text-fade {
-  background: linear-gradient(
+  -webkit-mask-image: linear-gradient(
     176deg,
-    var(--foreground) 46%,
-    rgba(200, 214, 226, 0.88) 100%
+    #000 42%,
+    rgba(0, 0, 0, 0.72) 100%
   );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  mask-image: linear-gradient(176deg, #000 42%, rgba(0, 0, 0, 0.72) 100%);
 }
 
 /* Hairline that fades out at both ends, so rules don't hard-stop. */
