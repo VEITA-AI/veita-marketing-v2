@@ -56,6 +56,35 @@ const TILT = 0.42;
 
 const easeOut = (t: number) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
 
+/**
+ * Patches a standard material so its vertices ride a travelling wave. Cheaper
+ * and smoother than rewriting the position attribute on the CPU every frame,
+ * and it keeps the material's normal lighting and emissive response.
+ */
+function useWavyMaterial(amplitude: number, speed: number) {
+  const uniforms = useRef({ uTime: { value: 0 } });
+  useFrame((state) => {
+    uniforms.current.uTime.value = state.clock.elapsedTime * speed;
+  });
+  const onBeforeCompile = useMemo(
+    () => (shader: THREE.WebGLProgramParametersWithUniforms) => {
+      shader.uniforms.uTime = uniforms.current.uTime;
+      shader.vertexShader =
+        "uniform float uTime;\n" +
+        shader.vertexShader.replace(
+          "#include <begin_vertex>",
+          `#include <begin_vertex>
+           float wave = sin(position.x * 5.2 + uTime * 1.7)
+                      + sin(position.y * 4.1 - uTime * 1.3)
+                      + sin(position.z * 6.3 + uTime * 0.9);
+           transformed += normalize(normal) * wave * ${amplitude.toFixed(3)};`
+        );
+    },
+    [amplitude]
+  );
+  return onBeforeCompile;
+}
+
 function nodePosition(i: number, spin: number): THREE.Vector3 {
   const a = ((20 + i * 90) * Math.PI) / 180 + spin;
   return new THREE.Vector3(
@@ -164,6 +193,7 @@ function KynForm({
 }) {
   const group = useRef<THREE.Group>(null);
   const inner = useRef<THREE.Group>(null);
+  const wavy = useWavyMaterial(0.012, 0.9 + seed * 0.07);
 
   const strands = useMemo(() => {
     const [p, q] = KNOTS[seed % KNOTS.length];
@@ -192,6 +222,13 @@ function KynForm({
     if (inner.current) {
       inner.current.rotation.y += delta * 0.2;
       inner.current.rotation.z += delta * 0.07;
+      // Counter-rotate the nested knot so the pair keeps shifting against
+      // itself rather than reading as one solid object.
+      const nested = inner.current.children[1];
+      if (nested) {
+        nested.rotation.x -= delta * 0.34;
+        nested.rotation.y += delta * 0.19;
+      }
     }
   });
 
@@ -209,6 +246,7 @@ function KynForm({
               roughness={0.25}
               metalness={0.45}
               toneMapped={false}
+              onBeforeCompile={wavy}
             />
           </mesh>
         ))}
@@ -340,24 +378,29 @@ function Beyond({ amount }: { amount: number }) {
   return (
     <group ref={g}>
       {seeds.map((pos, i) => (
-        <group key={i} position={pos}>
+        <group key={i} position={pos} rotation={[i * 0.7, i * 1.1, i * 0.4]}>
           <mesh>
-            <sphereGeometry args={[0.34, 24, 24]} />
+            {/* Same family as the four, just smaller and quieter. */}
+            <torusKnotGeometry
+              args={[0.26, 0.022, 120, 8, KNOTS[i % KNOTS.length][0], KNOTS[i % KNOTS.length][1]]}
+            />
             <meshStandardMaterial
-              color="#16304f"
-              emissive={new THREE.Color("#2a6ca8")}
-              emissiveIntensity={0.9 * amount}
-              roughness={0.4}
+              color="#12263f"
+              emissive={new THREE.Color("#3f8fd0")}
+              emissiveIntensity={1.1 * amount}
+              roughness={0.3}
+              metalness={0.4}
               transparent
               opacity={amount}
+              toneMapped={false}
             />
           </mesh>
           <mesh>
-            <sphereGeometry args={[0.5, 20, 20]} />
+            <sphereGeometry args={[0.4, 16, 16]} />
             <meshBasicMaterial
               color="#4f8fc8"
               transparent
-              opacity={0.12 * amount}
+              opacity={0.08 * amount}
               blending={THREE.AdditiveBlending}
               depthWrite={false}
             />

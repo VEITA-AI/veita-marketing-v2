@@ -468,6 +468,65 @@
   }
 }
 
+/* ---- Rules that draw rather than appear ---- */
+.rule-draw {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-slow) var(--ease-out-expo) 120ms;
+}
+.reveal-in .rule-draw {
+  transform: scaleX(1);
+}
+
+/* ---- Hover underline, drawn from the left ---- */
+.underline-draw {
+  position: relative;
+}
+.underline-draw::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--ember);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out-quart);
+}
+.underline-draw:hover::after,
+.underline-draw:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ---- Nav links pick up a hairline on hover ---- */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-fast) var(--ease-out-quart);
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rule-draw {
+    transform: none;
+    transition: none;
+  }
+}
+
 /* ---- Headline word rise ----
    Words arrive on a fast wave (30ms apart) so it reads as one gesture. */
 .word-rise > span {

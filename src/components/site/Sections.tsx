@@ -204,7 +204,7 @@ export function SectionHead({
           )}
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>
-        <div className="rule-fade" />
+        <div className="rule-fade rule-draw" />
       </div>
     </Reveal>
   );
@@ -327,7 +327,7 @@ export function IndexList({ items }: { items: IndexItem[] }) {
         );
 
         const rowClass =
-          "row-sweep group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-8 gap-y-3 px-3 py-8 -mx-3 md:grid-cols-[2.5rem_15rem_1fr_1rem] lg:grid-cols-[2.5rem_15rem_1fr_10rem_1rem]";
+          "row-sweep underline-draw group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-8 gap-y-3 px-3 py-8 -mx-3 md:grid-cols-[2.5rem_15rem_1fr_1rem] lg:grid-cols-[2.5rem_15rem_1fr_10rem_1rem]";
 
         return (
           <Reveal key={item.name} delay={i * 50}>

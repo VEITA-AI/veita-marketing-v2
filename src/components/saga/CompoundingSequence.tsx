@@ -253,7 +253,7 @@ export function CompoundingSequence() {
   const linkIn = span(p, 0.245, 0.375);
   const meta = span(p, 0.405, 0.535);
   const transfer = span(p, 0.565, 0.745);
-  const payoff = span(p, 0.785, 0.93);
+  const payoff = span(p, 0.785, 0.965);
 
   const bounds = [0, 0.1, 0.26, 0.42, 0.58, 0.8, 1];
   const beat = Math.min(
@@ -379,7 +379,14 @@ export function CompoundingSequence() {
       {/* The scene fills the viewport and the story sits inside it. Boxed into
           a column it read as a video playing beside the text; full-bleed it
           reads as a space you are moving through. */}
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div
+        className="sticky top-0 h-screen overflow-hidden"
+        style={{
+          // Hand off to the next section rather than being yanked out of frame.
+          opacity: 1 - ease((p - 0.965) / 0.035),
+          transition: "opacity 120ms linear",
+        }}
+      >
         <div className="cs-root absolute inset-0">
           {webgl ? (
             <KyndredScene

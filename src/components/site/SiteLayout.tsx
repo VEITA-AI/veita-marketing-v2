@@ -62,7 +62,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="max-lg:hidden"
+                  className="nav-link max-lg:hidden"
                   style={{
                     color: "var(--muted-fg)",
                     transition: "color var(--dur-fast) var(--ease-out-quart)",
