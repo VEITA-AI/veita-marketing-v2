@@ -3,12 +3,15 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
 import { CtaButton, GhostLink } from "@/components/site/CtaButton";
 import { KyndredLoop } from "@/components/saga/KyndredLoop";
+import { Stat } from "@/components/site/Stat";
+import { OperatingRecord } from "@/components/site/OperatingRecord";
 import {
   Bleed,
   FullBleed,
   DISPLAY,
   Eyebrow,
   Mark,
+  Headline,
   SectionHead,
   Thread,
   IndexList,
@@ -41,6 +44,18 @@ const ELEMENTS = [
     body: "The agentic operating platform every Kyn runs on.",
     spec: "the ceo layer",
   },
+];
+
+const PROOF = [
+  { name: "PreCognise", note: "verification-first talent marketplace" },
+  { name: "EasyAudit", note: "agentic compliance · 50+ customers" },
+];
+
+const RUNS = [
+  { name: "Finance", body: "Cash, runway and reporting maintained continuously." },
+  { name: "Pipeline", body: "Opportunities progressed, not just recorded." },
+  { name: "Board comms", body: "Drafted from the operating record, ready for review." },
+  { name: "Content", body: "Produced against strategy, not a content calendar." },
 ];
 
 const DOORS = [
@@ -110,6 +125,46 @@ export default function Home() {
               </div>
             </div>
           </Reveal>
+          {/* Proof inside the first screen. Both Kyn are live today. */}
+          <Reveal delay={240}>
+            <div
+              className="mt-20 flex flex-col gap-6 pt-8 md:flex-row md:items-center md:gap-14"
+              style={{ borderTop: "1px solid var(--rule-soft)" }}
+            >
+              <span
+                className="shrink-0 font-mono text-[9.5px] uppercase"
+                style={{ letterSpacing: "0.2em", color: "var(--muted-fg)" }}
+              >
+                § operating today
+              </span>
+              <div className="flex flex-wrap items-center gap-x-12 gap-y-5">
+                {PROOF.map((k) => (
+                  <Link
+                    key={k.name}
+                    href="/origin"
+                    className="group flex items-baseline gap-3"
+                  >
+                    <span
+                      className="pulse-dot h-1.5 w-1.5 shrink-0 translate-y-[-2px] rounded-full"
+                      style={{ background: "var(--success)" }}
+                    />
+                    <span
+                      className="font-display text-[19px]"
+                      style={{ fontWeight: 500, letterSpacing: "-0.03em" }}
+                    >
+                      {k.name}
+                    </span>
+                    <span
+                      className="font-mono text-[9.5px] uppercase"
+                      style={{ letterSpacing: "0.16em", color: "var(--muted-fg)" }}
+                    >
+                      {k.note}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </Reveal>
         </div>
 
         {/* The anchoring artifact, lifted off the ground — the move Linear,
@@ -143,6 +198,81 @@ export default function Home() {
           </div>
         </Reveal>
       </section>
+
+      {/* Real figures, counted up. Every one is sourced from a page below. */}
+      <Bleed className="pt-24 md:pt-28">
+        <Reveal>
+          <div
+            className="grid grid-cols-2 gap-x-10 gap-y-12 pt-10 md:grid-cols-4"
+            style={{ borderTop: "1px solid var(--rule-strong)" }}
+          >
+            <Stat value={2} label="Origin Kyn live" />
+            <Stat value={50} suffix="+" label="EasyAudit customers" />
+            <Stat value={4} label="Functions Saga runs" />
+            <Stat value={2} label="Ways in" />
+          </div>
+        </Reveal>
+      </Bleed>
+
+      {/* What the operating layer actually does, against the record. */}
+      <FullBleed className="sweep mt-28 py-24 md:mt-32 md:py-32">
+        <div className="mx-auto w-full max-w-[1240px] px-6 md:px-10">
+          <div className="grid gap-14 lg:grid-cols-12">
+            <div className="lg:col-span-6">
+              <Reveal>
+                <Eyebrow>the ceo layer</Eyebrow>
+              </Reveal>
+              <Reveal delay={80}>
+                <h2
+                  className="mt-5 max-w-[16ch] font-display"
+                  style={{
+                    ...DISPLAY,
+                    fontSize: "clamp(1.9rem, 1rem + 2.4vw, 3.25rem)",
+                  }}
+                >
+                  <Headline
+                    text="Not a dashboard. An operating layer that acts."
+                    mark="acts."
+                  />
+                </h2>
+              </Reveal>
+              <Reveal delay={160}>
+                <div className="mt-10 flex flex-col">
+                  {RUNS.map((r, i) => (
+                    <div
+                      key={r.name}
+                      className="flex items-baseline gap-6 py-4"
+                      style={{ borderTop: i === 0 ? undefined : "1px solid var(--rule-soft)" }}
+                    >
+                      <span
+                        className="w-[110px] shrink-0 font-display text-[17px]"
+                        style={{ fontWeight: 500, letterSpacing: "-0.02em" }}
+                      >
+                        {r.name}
+                      </span>
+                      <span
+                        className="text-[14px] leading-[1.55]"
+                        style={{ color: "var(--body-fg)" }}
+                      >
+                        {r.body}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+              <Reveal delay={240}>
+                <div className="mt-10">
+                  <GhostLink href="/saga">See how Saga runs a company</GhostLink>
+                </div>
+              </Reveal>
+            </div>
+
+            <Reveal delay={160} className="lg:col-span-6">
+              <OperatingRecord caption="A dashboard would have shown you these as charts, after the fact. Saga had already done them." />
+            </Reveal>
+          </div>
+        </div>
+      </FullBleed>
 
       <Bleed className="pt-20 md:pt-24">
         <Thread />

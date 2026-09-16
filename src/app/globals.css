@@ -372,6 +372,13 @@
   animation: word-rise var(--dur-slow) var(--ease-out-expo) forwards;
   animation-delay: calc(var(--i) * 32ms);
 }
+
+/* A CSS animation starts as soon as the element renders, so a headline below
+   the fold would finish its wave while still hidden and then simply pop in.
+   Hold it until its Reveal actually lands. */
+.reveal:not(.reveal-in) .word-rise > span {
+  animation-play-state: paused;
+}
 @keyframes word-rise {
   to {
     opacity: 1;
