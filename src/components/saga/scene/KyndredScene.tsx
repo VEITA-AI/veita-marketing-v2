@@ -268,7 +268,8 @@ function KynForm({
 
 /**
  * Signal along one spoke. A ribbon of points travelling a slightly bowed curve,
- * so traffic reads as flowing rather than as dots on a straight line.
+ * so traffic reads as flowing rather than as dots on a straight line. Each spoke
+ * carries two: one inbound to the core, one outbound, bowed to opposite sides.
  */
 function Signal({
   from,
@@ -311,7 +312,8 @@ function Signal({
     for (let i = 0; i < COUNT; i++) {
       // A short comet of points rather than one dot — reads as motion.
       const t = (t0 + i * 0.006) % 1;
-      const p = curve.getPoint(reverse ? 1 - t : t);
+      // Always travel from → to; `reverse` only picks which side the path bows.
+      const p = curve.getPoint(t);
       attr.setXYZ(i, p.x, p.y, p.z);
     }
     attr.needsUpdate = true;
