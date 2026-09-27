@@ -10,7 +10,6 @@ import {
   FullBleed,
   DISPLAY,
   Eyebrow,
-  Mark,
   Headline,
   SectionHead,
   Thread,
@@ -82,7 +81,7 @@ export default function Home() {
     <SiteLayout>
       {/* The first screen gets the room it needs — nothing competes with the claim. */}
       <section className="atmos dot-grid">
-        <div aria-hidden="true" className="sculpt">
+        <div aria-hidden="true" className="sculpt sculpt-intro">
           <span />
           <span />
           <span />
@@ -111,8 +110,12 @@ export default function Home() {
                 fontSize: "clamp(2.5rem, 1rem + 3.7vw, 4.6rem)",
               }}
             >
-              Veita builds capital-efficient companies on a platform that{" "}
-              <Mark>learns</Mark> from every one of them.
+              <Headline
+                text="Veita builds capital-efficient companies on a platform that learns from every one of them."
+                mark="learns"
+                className="hero-rise"
+                drawMark
+              />
             </h1>
           </Reveal>
 

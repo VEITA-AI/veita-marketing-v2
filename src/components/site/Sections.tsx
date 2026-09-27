@@ -105,8 +105,13 @@ export function Eyebrow({
   );
 }
 
-/** The signature move: one word carries a thick accent rule beneath it. */
-export function Mark({ children }: { children: string }) {
+/**
+ * The signature move: one word carries a thick accent rule beneath it. With
+ * `draw`, the rule is a pseudo-element that sweeps in instead — a text
+ * decoration can't be animated along its length.
+ */
+export function Mark({ children, draw }: { children: string; draw?: boolean }) {
+  if (draw) return <span className="mark-draw">{children}</span>;
   return (
     <span
       style={{
@@ -132,11 +137,13 @@ export function Headline({
   mark,
   className = "",
   style,
+  drawMark,
 }: {
   text: string;
   mark?: string;
   className?: string;
   style?: React.CSSProperties;
+  drawMark?: boolean;
 }) {
   const words = text.split(" ");
   return (
@@ -147,7 +154,7 @@ export function Headline({
         return (
           <Fragment key={`${word}-${i}`}>
             <span style={{ "--i": i } as React.CSSProperties}>
-              {isMark ? <Mark>{word}</Mark> : word}
+              {isMark ? <Mark draw={drawMark}>{word}</Mark> : word}
             </span>
             {i < words.length - 1 ? " " : null}
           </Fragment>
