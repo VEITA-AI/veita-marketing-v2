@@ -133,6 +133,7 @@ export function CompoundingSequence() {
   const [still, setStill] = useState(false);
   const [webgl, setWebgl] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [awake, setAwake] = useState(false);
 
   useEffect(() => {
     // Only mount the 3D scene where it can actually run, and never when the
@@ -154,6 +155,29 @@ export function CompoundingSequence() {
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    // Hold the scene back until the home hero's entrance has played out, or
+    // until the reader starts scrolling, whichever comes first. Parsing
+    // three.js and standing up the WebGL context costs a few hundred ms of main
+    // thread, and doing it on load froze that entrance mid-flight. A page
+    // restored mid-scroll wakes it straight away.
+    if (window.scrollY > 0) {
+      setAwake(true);
+      return;
+    }
+    const wake = () => {
+      setAwake(true);
+      window.removeEventListener("scroll", wake);
+      clearTimeout(timer);
+    };
+    window.addEventListener("scroll", wake, { passive: true });
+    const timer = setTimeout(wake, 2400);
+    return () => {
+      window.removeEventListener("scroll", wake);
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -389,16 +413,18 @@ export function CompoundingSequence() {
       >
         <div className="cs-root absolute inset-0">
           {webgl ? (
-            <KyndredScene
-              progress={p}
-              core={core}
-              kynIn={kynIn}
-              linkIn={linkIn}
-              meta={meta}
-              transfer={transfer}
-              payoff={payoff}
-              compact={compact}
-            />
+            awake && (
+              <KyndredScene
+                progress={p}
+                core={core}
+                kynIn={kynIn}
+                linkIn={linkIn}
+                meta={meta}
+                transfer={transfer}
+                payoff={payoff}
+                compact={compact}
+              />
+            )
           ) : (
             <div className="flex h-full items-center justify-center px-6">
               <svg
